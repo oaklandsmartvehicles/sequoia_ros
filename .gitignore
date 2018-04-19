@@ -1,0 +1,5 @@
+syntax: glob
+
+# Raw mesh files
+*.dae
+*.stl
