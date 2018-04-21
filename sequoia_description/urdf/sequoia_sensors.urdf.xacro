@@ -4,14 +4,14 @@
 
   <!-- Camera -->
   <xacro:include filename="$(find sequoia_description)/urdf/sensors/camera.urdf.xacro" />
-  <xacro:camera_sim name="camera_sim" parent_link="base_footprint" x="0.45" y="0" z="1.9" roll="0" pitch="0.4" yaw="0" />
+  <xacro:camera_sim name="camera_sim" parent_link="base_footprint" x="1.65" y="0" z="2.1" roll="0" pitch="0.4" yaw="0" />
 
   <!-- LIDAR -->
   <xacro:include filename="$(find sequoia_description)/urdf/sensors/hokuyo_utm_30.urdf.xacro" />
-  <xacro:hokuyo_utm_30 name="laser" parent_frame="base_footprint" x="1.2" y="0.0" z="0.85" roll="0.0" pitch="0.0" yaw="0.0" />
+  <xacro:hokuyo_utm_30 name="laser" parent_frame="base_footprint" x="2.75" y="0.0" z="0.85" roll="0.0" pitch="0.0" yaw="0.0" />
 
   <!-- GPS -->
   <xacro:include filename="$(find sequoia_description)/urdf/sensors/gps.urdf.xacro" />
-  <xacro:gps name="gps" parent_frame="base_footprint" x="0" y="0" z="2.06" />
+  <xacro:gps name="gps" parent_frame="base_footprint" x="0.8" y="0" z="2.35" />
 
 </robot>

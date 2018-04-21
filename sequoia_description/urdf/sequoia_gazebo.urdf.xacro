@@ -10,7 +10,7 @@
     <!-- Publish JointState message -->
     <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
       <jointName>
-          left_steer, right_steer, wheel_fl, wheel_fr, wheel_rl, wheel_rr
+          steer_fl, steer_fr, wheel_fl, wheel_fr, wheel_rl, wheel_rr
       </jointName>
       <updateRate>100</updateRate>
       <alwaysOn>true</alwaysOn>
@@ -22,14 +22,6 @@
   <gazebo reference="base_link" >
     <mu1>0.5</mu1>
     <mu2>0.5</mu2>
-  </gazebo>
-
-  <gazebo reference="dome" >
-    <material>Gazebo/Grey</material>
-  </gazebo>
-
-  <gazebo reference="dome_small" >
-    <material>Gazebo/Black</material>
   </gazebo>
 
   <gazebo reference="wheel_fl" >
