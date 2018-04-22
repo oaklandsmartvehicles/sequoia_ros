@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="sequoia_twist_controller" >
+  </node>
+
+</launch>
