@@ -10,8 +10,8 @@
   <xacro:property name="half_wheelbase" value="1.2" />
   <xacro:property name="wheel_radius" value="0.32" />
   <xacro:property name="wheel_thickness" value="0.17" />
-  <xacro:property name="wheel_mass" value="20.0" />
-  <xacro:property name="body_mass" value="1620.0" />
+  <xacro:property name="wheel_mass" value="10.0" />
+  <xacro:property name="body_mass" value="544.0" />
   <xacro:property name="body_width" value="${2*half_rear_track_width}" />
   <xacro:property name="body_depth" value="${2*half_wheelbase + 0.8}" />
   <xacro:property name="body_length" value="0.6" />

@@ -4,7 +4,7 @@
 
   <gazebo>
     <!-- Simulated vehicle interface -->
-    <plugin name="gembot_interface_plugin" filename="libgembot_interface_plugin.so" >
+    <plugin name="sequoia_interface" filename="libsequoia_interface_plugin.so" >
     </plugin>
 
     <!-- Publish JointState message -->

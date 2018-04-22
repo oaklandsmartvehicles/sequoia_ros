@@ -7,36 +7,35 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 find_package(catkin REQUIRED COMPONENTS
-#  roscpp
-#  tf
+ roscpp
+ tf
   gazebo_ros
 )
 
-#set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
-#find_package(gazebo REQUIRED)
-#link_directories(${GAZEBO_LIBRARY_DIRS})
+find_package(gazebo REQUIRED)
+link_directories(${GAZEBO_LIBRARY_DIRS})
 
-catkin_package()
-#catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES sequoia_interface_plugin
-#  DEPENDS gazebo
-#)
+catkin_package(
+ INCLUDE_DIRS include
+ LIBRARIES sequoia_interface_plugin
+ DEPENDS gazebo
+)
 
-#include_directories(
-#  ${catkin_INCLUDE_DIRS}
-#  ${GAZEBO_INCLUDE_DIRS}
-#  include
-#)
+include_directories(
+ ${catkin_INCLUDE_DIRS}
+ ${GAZEBO_INCLUDE_DIRS}
+ include
+)
 
-#add_library(sequoia_interface_plugin
-#  src/SequoiaInterfacePlugin.cpp
-#)
-#target_link_libraries(sequoia_interface_plugin
-#  ${catkin_LIBRARIES}
-#  ${GAZEBO_LIBRARIES}
-#)
+add_library(sequoia_interface_plugin
+ src/SequoiaInterfacePlugin.cpp
+)
+target_link_libraries(sequoia_interface_plugin
+ ${catkin_LIBRARIES}
+ ${GAZEBO_LIBRARIES}
+)
 
 if (CATKIN_ENABLE_TESTING)
   add_subdirectory(tests)

@@ -7,7 +7,7 @@
   <arg name="start_yaw" default="0.0" />
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find sequoia_description)/urdf/sequoia.urdf.xacro'" />
-  <node pkg="gazebo_ros" type="spawn_model"  name="spawn_sequoia" args="-urdf -param robot_description -model sequoia -x $(arg start_x) -y $(arg start_y) -z $(arg start_z) -Y $(arg start_yaw)"/>
+  <node pkg="gazebo_ros" type="spawn_model"  name="spawn_sequoia" args="-urdf -param robot_description -model vehicle -x $(arg start_x) -y $(arg start_y) -z $(arg start_z) -Y $(arg start_yaw)"/>
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="state_publisher">
     <param name="publish_frequency" value="100.0" />
   </node>
