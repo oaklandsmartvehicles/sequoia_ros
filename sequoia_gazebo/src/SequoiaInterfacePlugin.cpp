@@ -16,8 +16,8 @@ void SequoiaInterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   // Gazebo initialization
   left_steer_joint_ = model->GetJoint("steer_fl");
   right_steer_joint_ = model->GetJoint("steer_fr");
-  left_drive_joint_ = model->GetJoint("wheel_rl");
-  right_drive_joint_ = model->GetJoint("wheel_rr");
+  wheel_rl_joint_ = model->GetJoint("wheel_rl");
+  wheel_rr_joint_ = model->GetJoint("wheel_rr");
   wheel_fl_joint_ = model->GetJoint("wheel_fl");
   wheel_fr_joint_ = model->GetJoint("wheel_fr");
   model_ = model;
@@ -51,6 +51,7 @@ void SequoiaInterfacePlugin::OnUpdate(const common::UpdateInfo& info)
   driveUpdate();
 
   twist_.linear.x = footprint_link_->GetRelativeLinearVel().x;
+  twist_.angular.z = footprint_link_->GetRelativeAngularVel().z;
 
   // Detect rollovers
   math::Pose global_pose = footprint_link_->GetWorldPose();
@@ -61,8 +62,8 @@ void SequoiaInterfacePlugin::driveUpdate()
 {
   // Stop wheels if vehicle is rolled over
   if (rollover_) {
-    left_drive_joint_->SetForce(0, -1000.0 * left_drive_joint_->GetVelocity(0));
-    right_drive_joint_->SetForce(0, -1000.0 * right_drive_joint_->GetVelocity(0));
+    wheel_rl_joint_->SetForce(0, -1000.0 * wheel_rl_joint_->GetVelocity(0));
+    wheel_rr_joint_->SetForce(0, -1000.0 * wheel_rr_joint_->GetVelocity(0));
     wheel_fl_joint_->SetForce(0, -1000.0 * wheel_fl_joint_->GetVelocity(0));
     wheel_fr_joint_->SetForce(0, -1000.0 * wheel_fr_joint_->GetVelocity(0));
     return;
@@ -78,22 +79,33 @@ void SequoiaInterfacePlugin::driveUpdate()
       brake_adjust_factor = 1.0 + (twist_.linear.x - 0.1) / 0.1;
     }
 
-    left_drive_joint_->SetForce(0, -0.25 * brake_adjust_factor * brake_cmd_);
-    right_drive_joint_->SetForce(0, -0.25 * brake_adjust_factor * brake_cmd_);
-    wheel_fl_joint_->SetForce(0, -0.25 * brake_adjust_factor * brake_cmd_);
-    wheel_fr_joint_->SetForce(0, -0.25 * brake_adjust_factor * brake_cmd_);
+    setWheelTorque(-brake_adjust_factor * brake_cmd_);
   } else {
     if ((current_stamp - throttle_stamp_).toSec() < 0.25) {
-      double max_throttle_torque = throttle_cmd_ * 600.0 - 55.0 * twist_.linear.x;
-      if (max_throttle_torque < 0.0) {
-        max_throttle_torque = 0.0;
+      // Sigmoid function approximating torque dropoff as max speed is reached
+      double throttle_torque = throttle_cmd_ * 500.0 * (1 - 1 / (1 + exp(-1.5 * (twist_.linear.x - 9.7))));
+      if (throttle_torque < 0.0) {
+        throttle_torque = 0.0;
       }
-      left_drive_joint_->SetForce(0, 0.25 * max_throttle_torque);
-      right_drive_joint_->SetForce(0, 0.25 * max_throttle_torque);
-      wheel_fl_joint_->SetForce(0, 0.25 * max_throttle_torque);
-      wheel_fr_joint_->SetForce(0, 0.25 * max_throttle_torque);
+      setWheelTorque(throttle_torque);
     }
   }
+
+  // Rolling resistance
+  double rolling_resistance_torque = ROLLING_RESISTANCE_COEFF * MASS * G;
+  if (twist_.linear.x > 0.0) {
+    setWheelTorque(-rolling_resistance_torque);
+  } else {
+    setWheelTorque(rolling_resistance_torque);
+  }
+}
+
+void SequoiaInterfacePlugin::setWheelTorque(double torque)
+{
+  wheel_rl_joint_->SetForce(0, 0.25 * torque);
+  wheel_rr_joint_->SetForce(0, 0.25 * torque);
+  wheel_fl_joint_->SetForce(0, 0.25 * torque);
+  wheel_fr_joint_->SetForce(0, 0.25 * torque);
 }
 
 void SequoiaInterfacePlugin::steeringUpdate()

@@ -12,12 +12,15 @@
 namespace gazebo
 {
 
-#define STEERING_RATIO      17.0
-#define WHEELBASE           2.4
-#define TRACK_WIDTH         1.2
-#define MAX_BRAKE_TORQUE    1000.0 // N-m
+#define STEERING_RATIO            17.0
+#define WHEELBASE                 2.4
+#define TRACK_WIDTH               1.2
+#define MAX_BRAKE_TORQUE          1000.0 // N-m
+#define MAX_STEERING_ANGLE        0.5617  // min turning radius = 3.81 m
 
-#define MAX_STEERING_ANGLE  0.5617  // min turning radius = 3.81 m
+#define MASS                      584.0
+#define G                         9.81
+#define ROLLING_RESISTANCE_COEFF  0.01
 
 class SequoiaInterfacePlugin : public ModelPlugin
 {
@@ -38,6 +41,7 @@ class SequoiaInterfacePlugin : public ModelPlugin
     void recvModelStates(const gazebo_msgs::ModelStatesConstPtr& msg);
     void steeringUpdate();
     void driveUpdate();
+    void setWheelTorque(double torque);
 
     ros::NodeHandle* n_;
     ros::Publisher pub_twist_;
@@ -53,8 +57,8 @@ class SequoiaInterfacePlugin : public ModelPlugin
     event::ConnectionPtr update_connection_;
     physics::JointPtr left_steer_joint_;
     physics::JointPtr right_steer_joint_;
-    physics::JointPtr left_drive_joint_;
-    physics::JointPtr right_drive_joint_;
+    physics::JointPtr wheel_rl_joint_;
+    physics::JointPtr wheel_rr_joint_;
     physics::JointPtr wheel_fl_joint_;
     physics::JointPtr wheel_fr_joint_;
     physics::LinkPtr footprint_link_;
