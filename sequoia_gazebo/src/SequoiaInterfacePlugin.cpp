@@ -6,9 +6,12 @@ namespace gazebo
 SequoiaInterfacePlugin::SequoiaInterfacePlugin()
 {
   target_angle_ = 0.0;
+  left_angle_ = 0.0;
+  right_angle_ = 0.0;
   brake_cmd_ = 0.0;
   throttle_cmd_ = 0.0;
   rollover_ = false;
+  gear_state_.data = GEAR_FORWARD;
 }
 
 void SequoiaInterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
@@ -39,8 +42,11 @@ void SequoiaInterfacePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   sub_steering_cmd_ = n_->subscribe("steering_cmd", 1, &SequoiaInterfacePlugin::recvSteeringCmd, this);
   sub_brake_cmd_ = n_->subscribe("brake_cmd", 1, &SequoiaInterfacePlugin::recvBrakeCmd, this);
   sub_throttle_cmd_ = n_->subscribe("throttle_cmd", 1, &SequoiaInterfacePlugin::recvThrottleCmd, this);
+  sub_gear_shift_cmd_ = n_->subscribe("gear_cmd", 1, &SequoiaInterfacePlugin::recvGearCmd, this);
 
   pub_twist_ = n_->advertise<geometry_msgs::TwistStamped>("twist", 1);
+  pub_gear_state_ = n_->advertise<std_msgs::UInt8>("gear_state", 1, true);
+  pub_gear_state_.publish(gear_state_);
 
   twist_timer_ = n_->createTimer(ros::Duration(0.02), &SequoiaInterfacePlugin::twistTimerCallback, this);
 }
@@ -87,7 +93,18 @@ void SequoiaInterfacePlugin::driveUpdate()
       if (throttle_torque < 0.0) {
         throttle_torque = 0.0;
       }
-      setWheelTorque(throttle_torque);
+
+      switch (gear_state_.data) {
+        case GEAR_NEUTRAL:
+          setWheelTorque(0);
+          break;
+        case GEAR_FORWARD:
+          setWheelTorque(throttle_torque);
+          break;
+        case GEAR_REVERSE:
+          setWheelTorque(-throttle_torque);
+          break;
+      }
     }
   }
 
@@ -181,12 +198,24 @@ void SequoiaInterfacePlugin::recvThrottleCmd(const std_msgs::Float64ConstPtr& ms
   throttle_stamp_ = ros::Time::now();
 }
 
+void SequoiaInterfacePlugin::recvGearCmd(const std_msgs::UInt8ConstPtr& msg)
+{
+  if (msg->data == GEAR_FORWARD && gear_state_.data != GEAR_FORWARD) {
+    gear_state_.data = GEAR_FORWARD;
+    pub_gear_state_.publish(gear_state_);
+  } else if (msg->data == GEAR_REVERSE && gear_state_.data != GEAR_REVERSE) {
+    gear_state_.data = GEAR_REVERSE;
+    pub_gear_state_.publish(gear_state_);
+  }
+}
+
 void SequoiaInterfacePlugin::twistTimerCallback(const ros::TimerEvent& event)
 {
   geometry_msgs::TwistStamped twist_msg;
   twist_msg.header.frame_id = "base_footprint";
   twist_msg.header.stamp = event.current_real;
-  twist_msg.twist = twist_;
+  twist_msg.twist.linear.x = fabs(twist_.linear.x);
+  twist_msg.twist.angular.z = twist_.angular.z;
   pub_twist_.publish(twist_msg);
 }
 

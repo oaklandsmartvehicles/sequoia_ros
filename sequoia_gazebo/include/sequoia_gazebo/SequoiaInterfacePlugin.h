@@ -2,6 +2,7 @@
 #define AUDIBOTINTERFACEPLUGIN_H
 
 #include <ros/ros.h>
+#include <std_msgs/UInt8.h>
 #include <std_msgs/Float64.h>
 #include <geometry_msgs/TwistStamped.h>
 
@@ -22,6 +23,8 @@ namespace gazebo
 #define G                         9.81
 #define ROLLING_RESISTANCE_COEFF  0.01
 
+enum{GEAR_NEUTRAL=0, GEAR_FORWARD, GEAR_REVERSE};
+
 class SequoiaInterfacePlugin : public ModelPlugin
 {
   public:
@@ -38,16 +41,18 @@ class SequoiaInterfacePlugin : public ModelPlugin
     void recvSteeringCmd(const std_msgs::Float64ConstPtr& msg);
     void recvThrottleCmd(const std_msgs::Float64ConstPtr& msg);
     void recvBrakeCmd(const std_msgs::Float64ConstPtr& msg);
-    void recvModelStates(const gazebo_msgs::ModelStatesConstPtr& msg);
+    void recvGearCmd(const std_msgs::UInt8ConstPtr& msg);
     void steeringUpdate();
     void driveUpdate();
     void setWheelTorque(double torque);
 
     ros::NodeHandle* n_;
     ros::Publisher pub_twist_;
+    ros::Publisher pub_gear_state_;
     ros::Subscriber sub_steering_cmd_;
     ros::Subscriber sub_throttle_cmd_;
     ros::Subscriber sub_brake_cmd_;
+    ros::Subscriber sub_gear_shift_cmd_;
     ros::Timer twist_timer_;
 
     physics::ModelPtr model_;
@@ -75,6 +80,9 @@ class SequoiaInterfacePlugin : public ModelPlugin
     // Throttle
     double throttle_cmd_;
     ros::Time throttle_stamp_;
+
+    // Gear
+    std_msgs::UInt8 gear_state_;
 };
 
 GZ_REGISTER_MODEL_PLUGIN(SequoiaInterfacePlugin)
