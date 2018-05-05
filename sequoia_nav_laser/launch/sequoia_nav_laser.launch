@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+
+   <include file="$(find sequoia_nav_laser)/launch/sequoia_nav_sim.launch" />
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen" >
+    <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_planner_params.yaml" ns="NavfnROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params.yaml" ns="global_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params.yaml" ns="local_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_planner_params.yaml" ns="TebLocalPlannerROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/costmap_converter_params.yaml" command="load" />
+    <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+  </node>
+
+  <node ns="vehicle/laser_front" pkg="laser_filters" type="scan_to_scan_filter_chain" name="scan_filter" output="screen" respawn="true" >
+    <rosparam file="$(find sequoia_nav_laser)/yaml/laser_filter_params.yaml" />
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="map2world" args="0 0 0 0 0 0 /world /map 20" />
+
+  <node pkg="tf" type="static_transform_publisher" name="map2car" args="0 0 0 0 0 0  /map /base_footprint 20" />
+
+
+  <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />
+
+   <node pkg="rviz" type="rviz" name="sequoia_nav_laser_rviz" respawn="true" args="-d $(find sequoia_nav_laser)/rviz/rviz_config.rviz" />
+</launch>
