@@ -14,6 +14,8 @@
 
   </include>
 
- <include file="$(find gazebo_ros)/launch/empty_world.launch" />
+ <include file="$(find ugv_course_gazebo)/launch/gazebo_world.launch" >
+    <arg name="world_name" value="$(find ugv_course_gazebo)/worlds/gemworld.world" />
+  </include>
         
 </launch>

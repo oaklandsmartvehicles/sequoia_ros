@@ -47,19 +47,75 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        base_footprint:
+          Value: true
+        base_link:
+          Value: true
+        camera_sim:
+          Value: true
+        camera_sim_optical:
+          Value: true
+        gps:
+          Value: true
+        gps_raw:
+          Value: true
+        laser:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
+        steer_fl:
+          Value: true
+        steer_fr:
+          Value: true
+        wheel_fl:
+          Value: true
+        wheel_fr:
+          Value: true
+        wheel_rl:
+          Value: true
+        wheel_rr:
+          Value: true
+        world:
+          Value: true
       Marker Scale: 5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        world:
+          map:
+            base_footprint:
+              base_link:
+                steer_fl:
+                  wheel_fl:
+                    {}
+                steer_fr:
+                  wheel_fr:
+                    {}
+                wheel_rl:
+                  {}
+                wheel_rr:
+                  {}
+              camera_sim_optical:
+                camera_sim:
+                  {}
+              gps:
+                {}
+              laser:
+                {}
+            gps_raw:
+              {}
+            odom:
+              {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -277,23 +333,23 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.2080688
+      Distance: 75.6089478
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 30.5865669
+        Y: -4.48568916
+        Z: 2.76349735
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
       Pitch: 0.645398498
-      Target Frame: gembot/base_footprint
+      Target Frame: map
       Value: Orbit (rviz)
       Yaw: 4.75358915
     Saved: ~
@@ -313,5 +369,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1285
-  X: 65
-  Y: 24
+  X: 1821
+  Y: 234

@@ -19,7 +19,8 @@
 
   <node pkg="tf" type="static_transform_publisher" name="map2world" args="0 0 0 0 0 0 /world /map 20" />
 
-  <node pkg="tf" type="static_transform_publisher" name="map2car" args="0 0 0 0 0 0  /map /base_footprint 20" />
+ <include file="$(find ekf_example)/launch/ekf_example.launch" />
+  
 
 
   <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />
