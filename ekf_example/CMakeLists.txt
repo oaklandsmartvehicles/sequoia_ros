@@ -3,7 +3,6 @@ project(ekf_example)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  ugv_course_libs
   tf
   dynamic_reconfigure
 )
@@ -20,7 +19,7 @@ include_directories(
 
 add_executable(ekf_example
   src/ekf_example.cpp
-  src/EkfExample.cpp  
+  src/EkfExample.cpp
 )
 add_dependencies(ekf_example
   ${PROJECT_NAME}_gencfg

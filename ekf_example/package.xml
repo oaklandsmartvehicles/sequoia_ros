@@ -8,7 +8,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
-  <depend>ugv_course_libs</depend>
   <depend>tf</depend>
   <depend>dynamic_reconfigure</depend>
+
+  <exec_depend>dead_reckoning</exec_depend>
+  <exec_depend>rviz</exec_depend>
 </package>

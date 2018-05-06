@@ -1,21 +1,14 @@
 <?xml version="1.0"?>
 
 <launch>
-  <include file="$(find sequoia_nav_laser)/launch/spawn_sequoia.launch" >
-    <arg name="robot_type" value="sequoia" />
-    <arg name="description_pkg" value="$(find sequoia_description)" />
+  <include file="$(find sequoia_gazebo)/launch/spawn_sequoia.launch" >
     <arg name="start_x" value="0.0" />
     <arg name="start_y" value="-3.0" />
     <arg name="start_yaw" value="1.57" />
-    <arg name="gps" value="0" />
-    <arg name="pub_tf" value="true" />
-    <arg name="pub_odom" value="true" />
-    <arg name="use_sensors" value="1" />
-
   </include>
 
- <include file="$(find ugv_course_gazebo)/launch/gazebo_world.launch" >
-    <arg name="world_name" value="$(find ugv_course_gazebo)/worlds/gemworld.world" />
+ <include file="$(find gazebo_ros)/launch/empty_world.launch" >
+    <arg name="world_name" value="$(find sequoia_nav_laser)/world/gemworld.world" />
   </include>
-        
+
 </launch>
