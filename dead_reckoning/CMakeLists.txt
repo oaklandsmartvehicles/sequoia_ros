@@ -21,7 +21,7 @@ target_link_libraries(dead_reckoning ${catkin_LIBRARIES})
 install(
   TARGETS
     dead_reckoning
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(

@@ -31,7 +31,7 @@ target_link_libraries(ekf_example
 install(
   TARGETS
     ekf_example
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(
