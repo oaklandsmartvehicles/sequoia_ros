@@ -17,3 +17,15 @@ add_executable(dead_reckoning
   src/DeadReckoning.cpp
 )
 target_link_libraries(dead_reckoning ${catkin_LIBRARIES})
+
+install(
+  TARGETS
+    dead_reckoning
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
