@@ -21,14 +21,14 @@ obstacles:
   obstacle_range: 29.5
   raytrace_range: 30.0
 
-  observation_sources: lidar_scan    
-  lidar_scan: 
-    topic: /vehicle/laser_front/scan_filtered
-    sensor_frame: /laser
+  observation_sources: lidar_scan
+  lidar_scan:
+    topic: /laser/scan_filtered
+    sensor_frame: laser
     data_type: LaserScan
     marking: true
     clearing: true
-  
+
 inflation:
   inflation_radius: 2.6
   cost_scaling_factor: 0.2
