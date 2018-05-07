@@ -7,15 +7,15 @@ namespace ekf_example {
 EkfExample::EkfExample(ros::NodeHandle n, ros::NodeHandle pn)
 {
   // Set reference coordinates
-  LatLon ref_point(42.6794081167, -83.1956015483, 5.2);
+  LatLon ref_point(42.6794081167, -83.1956015483, 5.0);
   ref_coords = UTMCoords(ref_point);
 
   // Base sampling time of the filter
-  sample_time = 0.01;
+  sample_time = 0.02;
 
   // Subscribe to input data, advertise path, and set up main filter timer
-  sub_fix = n.subscribe("/fix", 1, &EkfExample::recvFix, this);
-  sub_twist = n.subscribe("/vehicle/twist", 1, &EkfExample::recvTwist, this);
+  sub_fix = n.subscribe("fix", 1, &EkfExample::recvFix, this);
+  sub_twist = n.subscribe("vehicle/twist", 1, &EkfExample::recvTwist, this);
   timer = n.createTimer(ros::Duration(sample_time), &EkfExample::timerCallback, this);
 
   // Set up dynamic reconfigure server
@@ -134,14 +134,7 @@ void EkfExample::timerCallback(const ros::TimerEvent& event)
   ekf_transform.setOrigin(tf::Vector3(X(0), X(1), 0));
   broadcaster.sendTransform(ekf_transform);
   
-  // Update TF transform with raw gps output
-  tf::StampedTransform raw_gps_transform;
-  raw_gps_transform.stamp_ = event.current_real;
-  raw_gps_transform.frame_id_ = "map";
-  raw_gps_transform.child_frame_id_ = "gps_raw";
-  raw_gps_transform.setRotation(tf::createIdentityQuaternion());
-  raw_gps_transform.setOrigin(tf::Vector3(position_data.x(), position_data.y(), 0));
-  broadcaster.sendTransform(raw_gps_transform);
+  
 }
 
 void EkfExample::reconfig(EkfExampleConfig& config, uint32_t level)

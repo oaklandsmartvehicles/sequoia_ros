@@ -5,10 +5,7 @@
 
   <node pkg="ekf_example" type="ekf_example" name="ekf_example" />
 
-  <node pkg="dead_reckoning" type="dead_reckoning" name="dead_reckoning" >
-    <param name="parent_frame" value="map" />
-    <param name="child_frame" value="odom" />
-  </node>
+  
 
   <node pkg="rviz" type="rviz" name="ekf_viz" args="-d $(find ekf_example)/rviz/rviz_config.rviz" />
 
