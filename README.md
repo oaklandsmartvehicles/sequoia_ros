@@ -1,5 +1,9 @@
 # sequoia_ros
-ROS packages for OU's IGVC Self-Drive competition entry
+ROS packages for OU's IGVC Self-Drive competition entry.
+
+After cloning into a ROS workspace, run the following the command from the root of the workspace to install the necessary ROS package dependencies to make everything work correctly:
+
+`rosdep install --from-paths src --ignore-src -r`
 
 ## Gazebo simulation of Sequoia
 
