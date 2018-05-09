@@ -5,6 +5,7 @@ from __future__ import print_function
 import roslib
 import sys
 import rospy
+import rospkg
 import cv2
 import message_filters
 from std_msgs.msg import String
@@ -16,6 +17,12 @@ from cv_bridge import CvBridge, CvBridgeError
 class sign_detector:
 
   def __init__(self):
+    #Find package path    
+    rospack = rospkg.RosPack()
+    sign_detection_path = rospack.get_path('sign_detection') + "/cascades/" 
+    #Load cascade files for sign detection
+    self.stop_sign_cascade = cv2.CascadeClassifier(sign_detection_path + "ow_left_arrow.xml")
+    print(sign_detection_path) 
     #Setup message filter to synchronize the subscribers (Zed left camera, Registered Point Cloud)
     self.bridge = CvBridge()  
     self.image_sub = message_filters.Subscriber("/zed/left/image_raw_color", Image)
@@ -34,13 +41,26 @@ class sign_detector:
     cv2.waitKey(3)
 
     #U,V position in the image frame of the sign
-    desiredU = 240
-    desiredV = 250
+    gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+    signs = self.stop_sign_cascade.detectMultiScale(gray, 1.3, 5)
 
-    #Acquire the point cloud x,y,z position from the u,v position index
-    data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
-    int_data = next(data_out)
-    print(int_data)
+    #Acquire the point cloud x,y,z position from the u,v position index    
+    for (x,y,w,h) in signs:
+      desiredU = x
+      desiredV = y
+      data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
+      int_data = next(data_out)
+      print(int_data)
+
+      # Draw position
+      cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
+      roi_gray = gray[y:y+h, x:x+w]
+      roi_color = cv_image[y:y+h, x:x+w]
+      cv2.imshow("Image window", cv_image)
+      cv2.waitKey(3)
+    
+
+
 
 def main(args):
   sd = sign_detector()
