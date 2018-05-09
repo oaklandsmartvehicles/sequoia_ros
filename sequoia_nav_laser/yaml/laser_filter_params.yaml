@@ -1,0 +1,12 @@
+scan_filter_chain:
+- name: right_edge
+  type: laser_filters/LaserScanAngularBoundsFilterInPlace
+  params:
+    lower_angle: 1.8
+    upper_angle: 2.9
+
+- name: left_edge
+  type: laser_filters/LaserScanAngularBoundsFilterInPlace
+  params:
+    lower_angle: -2.9
+    upper_angle: -1.8

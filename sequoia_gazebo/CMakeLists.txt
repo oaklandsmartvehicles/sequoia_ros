@@ -20,7 +20,6 @@ link_directories(${GAZEBO_LIBRARY_DIRS})
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES sequoia_interface_plugin
- DEPENDS gazebo
 )
 
 include_directories(
@@ -35,6 +34,20 @@ add_library(sequoia_interface_plugin
 target_link_libraries(sequoia_interface_plugin
  ${catkin_LIBRARIES}
  ${GAZEBO_LIBRARIES}
+)
+
+# Gazebo plugins
+install(
+  TARGETS
+    sequoia_interface_plugin
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+
+# Config files
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 if (CATKIN_ENABLE_TESTING)

@@ -1,0 +1,7 @@
+base_global_planner: navfn/NavfnROS
+base_local_planner: teb_local_planner/TebLocalPlannerROS
+recovery_behaviors: []
+controller_frequency: 20.0
+recovery_behavior_enabled: false
+clearing_rotation_allowed: false
+planner_frequency: 2.0
