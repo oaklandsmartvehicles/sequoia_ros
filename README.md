@@ -19,6 +19,15 @@ Spawn Sequoia in Gazebo with `spawn_sequoia.launch` in the `sequoia_ros` package
 
 `roslaunch sequoia_gazebo spawn_sequoia.launch`
 
+### Simulating Specific IGVC Tasks
+
+The `self_drive_tasks.world` file in the `self_drive_tasks_gazebo` package simulates the specific tasks as described in the official rules document, which can be found [[here](http://www.igvc.org/2018selfdriverules.pdf)].
+
+To load the world and spawn the vehicle at the starting point for a particular task, run the corresponding launch file in the `self_drive_tasks_gazebo` package. For example, to run task F3, the right turn test where the vehicle has to stop at the intersection:
+
+`roslaunch self_drive_tasks_gazebo f3_gazebo.launch`
+
+
 ### Sensor Data Topics
 
 * `/fix`: GPS position given in latitude and longitude in the form of a `sensor_msgs/NavSatFix` message
