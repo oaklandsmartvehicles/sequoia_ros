@@ -1,13 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-  <include file="$(find gazebo_ros)/launch/empty_world.launch" >
-    <arg name="world_name" value="$(find self_drive_tasks_gazebo)/worlds/self_drive_tasks.world" />
-  </include>
+  <include file="$(find self_drive_tasks_gazebo)/launch/load_task_world.launch" />
 
   <include file="$(find sequoia_gazebo)/launch/spawn_sequoia.launch" >
-    <arg name="start_x" value="0" />
-    <arg name="start_y" value="0" />
+    <arg name="start_x" value="124.616" />
+    <arg name="start_y" value="-183.13" />
     <arg name="start_yaw" value="0" />
   </include>
 
