@@ -19,6 +19,10 @@
 
   <include file="$(find ekf_example)/launch/ekf_example.launch" />
 
+<rosparam file="$(find sequoia_nav_laser)/yaml/TrueHeading.yaml" />
+<param name="TrueHeading" value="1.57" />	
+
+
   <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />
 
   <node pkg="rviz" type="rviz" name="sequoia_nav_laser_rviz" respawn="true" args="-d $(find sequoia_nav_laser)/rviz/rviz_config.rviz" />

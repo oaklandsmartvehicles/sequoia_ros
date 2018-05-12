@@ -6,26 +6,31 @@ namespace ekf_example {
 
 EkfExample::EkfExample(ros::NodeHandle n, ros::NodeHandle pn)
 {
-  // Set reference coordinates
-  LatLon ref_point(42.6794081167, -83.1956015483, 5.0);
-  ref_coords = UTMCoords(ref_point);
-
-  // Base sampling time of the filter
+    // Base sampling time of the filter
   sample_time = 0.02;
 
   // Subscribe to input data, advertise path, and set up main filter timer
-  sub_fix = n.subscribe("fix", 1, &EkfExample::recvFix, this);
-  sub_twist = n.subscribe("vehicle/twist", 1, &EkfExample::recvTwist, this);
+  sub_fix = n.subscribe("/fix", 1, &EkfExample::recvFix, this);
+  sub_twist = n.subscribe("/vehicle/twist", 1, &EkfExample::recvTwist, this);
   timer = n.createTimer(ros::Duration(sample_time), &EkfExample::timerCallback, this);
 
   // Set up dynamic reconfigure server
   srv_.setCallback(boost::bind(&EkfExample::reconfig, this, _1, _2));
   
+  
   X.setZero();
+  n.getParam("/TrueHeading", X(2));
+  
   P.setIdentity();
   
   twist_available = false;
   gps_available = false;
+  latch_gps = 0;
+  latch_heading = 0;
+  
+  //X(2)= 1.57;
+  
+
 }
 
 void EkfExample::recvTwist(const geometry_msgs::TwistStampedConstPtr& msg)
@@ -36,8 +41,15 @@ void EkfExample::recvTwist(const geometry_msgs::TwistStampedConstPtr& msg)
 
 void EkfExample::recvFix(const sensor_msgs::NavSatFixConstPtr& msg)
 {
+  // Set reference coordinates
+  if (latch_gps == 0){
+  LatLon ref_point(*msg);
+  ref_coords = UTMCoords(ref_point);  
+  latch_gps = 1;
+  }
   position_data = UTMCoords(*msg) - ref_coords;
   gps_available = true;
+  //ROS_INFO("Actual X t: %f", X(2));
 }
 
 void EkfExample::timerCallback(const ros::TimerEvent& event)

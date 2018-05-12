@@ -50,6 +50,8 @@ private:
 
   bool gps_available;
   bool twist_available;
+  int latch_gps;
+  int latch_heading;
 
 };
 

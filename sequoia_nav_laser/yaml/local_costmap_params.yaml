@@ -21,7 +21,7 @@ obstacles:
 
   observation_sources: lidar_scan    
   lidar_scan: 
-    topic: /vehicle/laser_front/scan_filtered
+    topic: /laser/scan_filtered
     sensor_frame: /laser
     data_type: LaserScan
     marking: true
