@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find self_drive_tasks_gazebo)/launch/q2_gazebo.launch" />
+
+  <include file="$(find sequoia_twist_controller)/launch/sequoia_twist_controller.launch" />
+
+  <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" >
+    <remap from="scan" to="/laser/scan" />
+  </node>
+
+  <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" >
+    <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+  </node>
+
+</launch>
