@@ -3,8 +3,8 @@
 <launch>
   <include file="$(find sequoia_gazebo)/launch/spawn_sequoia.launch" >
     <arg name="start_x" value="0.0" />
-    <arg name="start_y" value="-3.0" />
-    <arg name="start_yaw" value="1.57" />
+    <arg name="start_y" value="0.0" />
+    <arg name="start_yaw" value="1.463963" />
   </include>
 
  <include file="$(find gazebo_ros)/launch/empty_world.launch" >
