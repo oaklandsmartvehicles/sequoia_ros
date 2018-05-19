@@ -12,6 +12,7 @@ from std_msgs.msg import String
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import Image, PointCloud2
 from cv_bridge import CvBridge, CvBridgeError
+from sign_detection.msg import SignData, SignDataArray
 
 #This node takes ZED camera information to detect a traffic sign and publishes the position as well as label of the detected sign 
 class sign_detector:
@@ -27,8 +28,12 @@ class sign_detector:
     self.bridge = CvBridge()  
     self.image_sub = message_filters.Subscriber("/zed/left/image_raw_color", Image)
     self.cloud_sub = message_filters.Subscriber("/zed/point_cloud/cloud_registered", PointCloud2)
+
+    self.pub_sign_data = rospy.Publisher('sign_data', SignDataArray, queue_size=1)
+
     ts = message_filters.ApproximateTimeSynchronizer([self.image_sub, self.cloud_sub], 10,0.3)
     ts.registerCallback(self.callback)
+
   def callback(self, image, pointcloud):
     #Converts cv_bridge image type to opencv MAT type
     try:
@@ -44,6 +49,9 @@ class sign_detector:
     gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
     signs = self.stop_sign_cascade.detectMultiScale(gray, 1.3, 5)
 
+    sign_data_array = SignDataArray()
+    sign_data_array.header = pointcloud.header
+
     #Acquire the point cloud x,y,z position from the u,v position index    
     for (x,y,w,h) in signs:
       desiredU = x
@@ -58,7 +66,17 @@ class sign_detector:
       roi_color = cv_image[y:y+h, x:x+w]
       cv2.imshow("Image window", cv_image)
       cv2.waitKey(3)
-    
+
+      sign = SignData()
+      sign.sign_type = 'sign_type'
+      sign.sign_position.x = int_data[0]
+      sign.sign_position.y = int_data[1]
+      sign.sign_position.z = int_data[2]
+
+      sign_data_array.data.append(sign)
+
+    self.pub_sign_data.publish(sign_data_array)
+
 
 
 
