@@ -31,7 +31,7 @@ void SequoiaTwistController::timerCallback(const ros::TimerEvent& event)
 
   // PI control of throttle and brake
   double speed_error = twist_cmd_.twist.linear.x - twist_actual_.twist.linear.x;
-  int_throttle_ += 0.02 * cfg_.throttle_i * speed_error;
+  int_throttle_ += 0.02 *  speed_error;
   if (int_throttle_ >= cfg_.max_throttle) {
     int_throttle_ = cfg_.max_throttle;
   } else if (int_throttle_ < 0.0) {

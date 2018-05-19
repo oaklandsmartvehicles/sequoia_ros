@@ -29,10 +29,16 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
+add_executable(drive_control_msg_conversion
+  src/drive_control_msg_conversion.cpp
+)
+target_link_libraries(drive_control_msg_conversion
+  ${catkin_LIBRARIES}
+)
+
 ### Install Rules
 install(
   TARGETS
     ${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
