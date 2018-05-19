@@ -10,7 +10,7 @@ LidarStopTrigger::LidarStopTrigger(ros::NodeHandle n, ros::NodeHandle pn)
   pub_stop_trigger_ = n.advertise<std_msgs::Bool>("stop_trigger", 1, true);
 
   // Subscribe to raw laser scan to detect objects close to vehicle
-  sub_laser_ = n.subscribe("laser/scan_filtered", 1, &LidarStopTrigger::recvLidarScan, this);
+  sub_laser_ = n.subscribe("scan", 1, &LidarStopTrigger::recvLidarScan, this);
 
   // Initialize stop trigger signal to false
   stop_trigger_msg_.data = false;

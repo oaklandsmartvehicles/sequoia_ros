@@ -14,8 +14,10 @@
   </node>
 
 
+
+
  <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" output="screen">
-    
+  <remap from="scan" to="laser/scan_filtered" />  
   </node>
 
 
