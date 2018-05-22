@@ -178,7 +178,7 @@ void SequoiaInterfacePlugin::recvSteeringCmd(const std_msgs::Float64ConstPtr& ms
 
 void SequoiaInterfacePlugin::recvBrakeCmd(const std_msgs::Float64ConstPtr& msg)
 {
-  brake_cmd_ = msg->data;
+  brake_cmd_ = msg->data * MAX_BRAKE_TORQUE;
   if (brake_cmd_ < 0) {
     brake_cmd_ = 0;
   } else if (brake_cmd_ > MAX_BRAKE_TORQUE) {
