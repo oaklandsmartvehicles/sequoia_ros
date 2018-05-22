@@ -10,6 +10,8 @@
 #include "gps_conv.h"
 #include <dynamic_reconfigure/server.h>
 #include <ekf_example/EkfExampleConfig.h>
+#include <std_msgs/UInt8.h>
+
 
 #include <eigen3/Eigen/Dense>
 
@@ -25,10 +27,12 @@ private:
   void reconfig(EkfExampleConfig& config, uint32_t level);
   void timerCallback(const ros::TimerEvent& event);
   void recvTwist(const geometry_msgs::TwistStampedConstPtr& msg);
+  void recvGear(const std_msgs::UInt8::ConstPtr& msg);
   void recvFix(const sensor_msgs::NavSatFixConstPtr& msg);
 
   ros::Subscriber sub_twist;
   ros::Subscriber sub_fix;
+  ros::Subscriber sub_gear;
   ros::Timer timer;
 
   dynamic_reconfigure::Server<EkfExampleConfig> srv_;
@@ -38,6 +42,8 @@ private:
   UTMCoords ref_coords;
   tf::TransformBroadcaster broadcaster;
   double sample_time;
+  std_msgs::UInt8 gear_data;
+
 
   Eigen::Matrix<double, 5, 5> Q;
 
@@ -52,7 +58,8 @@ private:
   bool twist_available;
   int latch_gps;
   int latch_heading;
-
+  int gear_state_sign;
+  
 };
 
 }
