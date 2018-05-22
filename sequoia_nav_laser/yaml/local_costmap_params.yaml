@@ -1,7 +1,7 @@
 global_frame: /map
 robot_base_frame: /base_footprint
-transform_tolerance: 0.2
-robot_radius: 1.1
+transform_tolerance: 0.1
+robot_radius: 0.5
 
 update_frequency: 5.0
 publish_frequency: 2.0
@@ -28,6 +28,6 @@ obstacles:
     clearing: true
   
 inflation:
-  inflation_radius: 1.5
+  inflation_radius: 1.1
   cost_scaling_factor: 0.5
 
