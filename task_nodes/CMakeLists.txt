@@ -19,8 +19,16 @@ target_link_libraries(task_q2
   ${catkin_LIBRARIES}
 )
 
+add_executable(multiplexor
+  src/multiplexor.cpp
+)
+target_link_libraries(multiplexor
+  ${catkin_LIBRARIES}
+)
+
 install(
   TARGETS
     task_q2
+    multiplexor
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
