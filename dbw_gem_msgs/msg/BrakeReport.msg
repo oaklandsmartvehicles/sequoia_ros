@@ -1,0 +1,28 @@
+Header header
+
+# Brake pedal
+# Unitless, range 0.086 to 0.335
+float32 pedal_input
+float32 pedal_cmd
+float32 pedal_output
+
+# Braking torque (Nm)
+float32 torque_input
+float32 torque_cmd
+float32 torque_output
+
+# Brake On Off (BOO), brake lights
+bool boo_input
+bool boo_cmd
+bool boo_output
+
+# Status
+bool enabled  # Enabled
+bool override # Driver override
+bool driver   # Driver activity
+
+# Faults
+bool fault_ch1
+bool fault_ch2
+bool fault_boo
+bool fault_connector # This fault can be ignored

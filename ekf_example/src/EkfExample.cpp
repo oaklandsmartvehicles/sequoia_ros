@@ -12,6 +12,8 @@ EkfExample::EkfExample(ros::NodeHandle n, ros::NodeHandle pn)
   // Subscribe to input data, advertise path, and set up main filter timer
   sub_fix = n.subscribe("/fix", 1, &EkfExample::recvFix, this);
   sub_twist = n.subscribe("/vehicle/twist", 1, &EkfExample::recvTwist, this);
+  sub_gear = n.subscribe("/vehicle/gear_state", 1, &EkfExample::recvGear, this);
+
   timer = n.createTimer(ros::Duration(sample_time), &EkfExample::timerCallback, this);
 
   // Set up dynamic reconfigure server
@@ -33,11 +35,23 @@ EkfExample::EkfExample(ros::NodeHandle n, ros::NodeHandle pn)
 
 }
 
+void EkfExample::recvGear(const std_msgs::UInt8::ConstPtr& msg)
+{
+  gear_data = *msg;
+  if(gear_data.data == 2) {
+   gear_state_sign = -1.0; 
+  } else {
+   gear_state_sign = 1.0; 
+ 
+  }
+}
+
 void EkfExample::recvTwist(const geometry_msgs::TwistStampedConstPtr& msg)
 {
   twist_data = msg->twist;
   twist_available = true;
 }
+
 
 void EkfExample::recvFix(const sensor_msgs::NavSatFixConstPtr& msg)
 {
@@ -90,7 +104,7 @@ void EkfExample::timerCallback(const ros::TimerEvent& event)
     C.row(3) << 0, 0, 0, 0, 1;
     
     measurements = MatrixXd(4, 1);
-    measurements << position_data.x(), position_data.y(), twist_data.linear.x, twist_data.angular.z;
+    measurements << position_data.x(), position_data.y(), twist_data.linear.x * gear_state_sign, twist_data.angular.z;
     
     expected_measurements = MatrixXd(4, 1);
     expected_measurements << predicted_state(0), predicted_state(1), predicted_state(3), predicted_state(4);
@@ -114,7 +128,7 @@ void EkfExample::timerCallback(const ros::TimerEvent& event)
     C.row(1) << 0, 0, 0, 0, 1;
     
     measurements = MatrixXd(2, 1);
-    measurements << twist_data.linear.x, twist_data.angular.z;
+    measurements << twist_data.linear.x * gear_state_sign, twist_data.angular.z;
     
     expected_measurements = MatrixXd(2, 1);
     expected_measurements << predicted_state(3), predicted_state(4);

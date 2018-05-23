@@ -11,5 +11,6 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
   <depend>dynamic_reconfigure</depend>
+  <depend>dbw_gem_msgs</depend>
 
 </package>

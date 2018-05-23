@@ -9,6 +9,7 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   dynamic_reconfigure
+  dbw_gem_msgs
 )
 
 generate_dynamic_reconfigure_options(
@@ -31,6 +32,9 @@ target_link_libraries(${PROJECT_NAME}
 
 add_executable(drive_control_msg_conversion
   src/drive_control_msg_conversion.cpp
+)
+add_dependencies(drive_control_msg_conversion
+  ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(drive_control_msg_conversion
   ${catkin_LIBRARIES}

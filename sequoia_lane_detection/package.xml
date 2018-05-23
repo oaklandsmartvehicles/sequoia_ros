@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>sequoia_lane_detection</name>
+  <version>0.0.0</version>
+  <description>
+    Image processing pipeline for detecting the IGVC Self-Drive lane markings
+    and interfacing with the rest of the system
+  </description>
+  <maintainer email="mtradovn@oakland.edu">Micho Radovnikovich</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>roscpp</depend>
+  <depend>image_transport</depend>
+  <depend>image_geometry</depend>
+  <depend>cv_bridge</depend>
+  <depend>tf</depend>
+  <depend>costmap_converter</depend>
+
+</package>
