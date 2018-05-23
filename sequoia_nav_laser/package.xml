@@ -16,4 +16,6 @@
   <exec_depend>sequoia_twist_controller</exec_depend>
   <exec_depend>laser_filters</exec_depend>
   <exec_depend>lidar_stop_trigger</exec_depend>
+  <exec_depend>task_nodes</exec_depend>
+  <exec_depend>self_drive_tasks_gazebo</exec_depend>
 </package>
