@@ -10,6 +10,9 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <image_geometry/pinhole_camera_model.h>
+#include <dynamic_reconfigure/server.h>
+#include <sequoia_lane_detection/ValThreshConfig.h>
+#include <visualization_msgs/Marker.h>
 
 namespace sequoia_lane_detection
 {
@@ -20,6 +23,7 @@ public:
   LaneDetection(ros::NodeHandle n, ros::NodeHandle pn);
 
 private:
+  void reconfig(ValThreshConfig& config, uint32_t level);
   void recvImage(const sensor_msgs::ImageConstPtr& msg);
   void recvCameraInfo(const sensor_msgs::CameraInfoConstPtr& msg);
 
@@ -33,6 +37,10 @@ private:
   ros::Subscriber sub_image_;
   ros::Subscriber sub_cam_info_;
   ros::Publisher pub_line_obstacles_;
+  ros::Publisher pub_viz_obstacles_;
+
+  dynamic_reconfigure::Server<ValThreshConfig> srv_;
+  ValThreshConfig cfg_;
 
   sensor_msgs::CameraInfo camera_info_;
 

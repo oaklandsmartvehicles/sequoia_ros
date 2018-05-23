@@ -12,10 +12,12 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>dynamic_reconfigure</depend>
   <depend>roscpp</depend>
+  <depend>rospy</depend>
   <depend>image_transport</depend>
   <depend>image_geometry</depend>
   <depend>cv_bridge</depend>
   <depend>tf</depend>
   <depend>costmap_converter</depend>
+  <depend>visualization_msgs</depend>
 
 </package>

@@ -8,14 +8,20 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   dynamic_reconfigure
   image_transport
   image_geometry
   cv_bridge
   tf
   costmap_converter
+  visualization_msgs
 )
 find_package(OpenCV REQUIRED)
+
+generate_dynamic_reconfigure_options(
+  cfg/ValThresh.cfg
+)
 
 catkin_package(
   DEPENDS OpenCV
@@ -32,6 +38,9 @@ add_executable(lane_detection_node
 )
 target_link_libraries(lane_detection_node
   ${catkin_LIBRARIES}
+)
+add_dependencies(lane_detection_node
+  ${PROJECT_NAME}_gencfg
 )
 
 install(
