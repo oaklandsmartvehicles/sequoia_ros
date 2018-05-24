@@ -17,6 +17,9 @@ include_directories(
 add_executable(stop_sign_plan
   src/stop_sign_plan.cpp
 )
+add_dependencies(stop_sign_plan
+  ${catkin_EXPORTED_TARGETS}
+)
 target_link_libraries(stop_sign_plan
   ${catkin_LIBRARIES}
 )
