@@ -16,7 +16,7 @@ void recvStopTrigger(const std_msgs::BoolConstPtr& msg)
   stop_trigger = msg->data;
 }
 
-void recvStopTrigger(const std_msgs::BoolConstPtr& msg)
+void recvStopSignTrigger(const std_msgs::BoolConstPtr& msg)
 {
   stop_sign_trigger = msg->data;
 }
