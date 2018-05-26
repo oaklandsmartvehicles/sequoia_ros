@@ -10,8 +10,14 @@
   </node>
 
   <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" >
-    <remap from="scan" to="/laser/scan" />
+    <remap from="scan" to="/laser/scan_filtered" />
+    <remap from="stop_trigger" to="vehicle/stop_trigger" />
   </node>
+
+ <node ns="laser" pkg="laser_filters" type="scan_to_scan_filter_chain" name="scan_filter" output="screen" respawn="true" >
+    <rosparam file="$(find sequoia_nav_laser)/yaml/laser_filter_params.yaml" />
+  </node>
+
 
 <!--   <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" > -->
 <!--     <remap from="cmd_vel" to="/vehicle/cmd_vel" /> -->
@@ -30,7 +36,8 @@
   <node pkg="ekf_example" type="ekf_example" name="ekf_example"/>
 
   <node ns="vehicle" pkg="task_nodes" type="multiplexor" name="multiplexor" output="screen" >
-
+  <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+    <remap from="gear_cmd" to="/vehicle/gear_cmd" />
   </node>
 
   <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />
