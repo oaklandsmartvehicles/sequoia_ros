@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-
+import math
 import roslib
 import sys
 import rospy
@@ -74,6 +74,9 @@ class sign_detector:
       desiredV = y
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
+      
       print(int_data)
 
       # Draw position
@@ -98,6 +101,8 @@ class sign_detector:
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
 
       # Draw position
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
@@ -124,6 +129,8 @@ class sign_detector:
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
 
       # Draw position
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
@@ -149,6 +156,8 @@ class sign_detector:
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
 
       # Draw position
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
@@ -172,6 +181,8 @@ class sign_detector:
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
 
       # Draw position
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
@@ -196,6 +207,8 @@ class sign_detector:
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
 
       # Draw position
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
