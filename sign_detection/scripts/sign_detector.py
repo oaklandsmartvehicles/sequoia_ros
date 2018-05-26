@@ -35,7 +35,7 @@ class sign_detector:
     self.bridge = CvBridge()  
     self.image_sub = message_filters.Subscriber("/zed/left/image_raw_color", Image)
     self.cloud_sub = message_filters.Subscriber("/zed/point_cloud/cloud_registered", PointCloud2)
-    self.downsample_count = 0
+
 
     self.pub_sign_data = rospy.Publisher('sign_data', SignDataArray, queue_size=1)
 
@@ -43,13 +43,6 @@ class sign_detector:
     ts.registerCallback(self.callback)
 
   def callback(self, image, pointcloud):
-
-    if self.downsample_count < 10:
-      self.downsample_count += 1
-      return
-    else:
-      self.downsample_count = 0
-
     #Converts cv_bridge image type to opencv MAT type
     try:
       cv_image = self.bridge.imgmsg_to_cv2(image, "bgr8")
@@ -63,8 +56,8 @@ class sign_detector:
     #U,V position in the image frame of the sign
     gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
     
-    ow_left_signs = self.ow_left_cascade.detectMultiScale(gray,2,2) 
-    ow_right_signs= self.ow_right_cascade.detectMultiScale(gray,2,2)
+    ow_left_signs = self.ow_left_cascade.detectMultiScale(gray) 
+    ow_right_signs= self.ow_right_cascade.detectMultiScale(gray)
     
     closed_signsV3 = self.closed_cascadeV3.detectMultiScale(gray,2,2)
 
@@ -78,8 +71,8 @@ class sign_detector:
     font = cv2.FONT_HERSHEY_SIMPLEX
     #Acquire the point cloud x,y,z position from the u,v position index    
     for (x,y,w,h) in no_left_signs:
-      desiredU = x
-      desiredV = y
+      desiredU = x + (w/2)
+      desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
@@ -104,8 +97,8 @@ class sign_detector:
       sign_data_array.data.append(sign)
 
     for (x,y,w,h) in no_right_signs:
-      desiredU = x
-      desiredV = y
+      desiredU = x + (w/2)
+      desiredV = y + (h/2) 
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
@@ -132,7 +125,7 @@ class sign_detector:
 
 
     for (x,y,w,h) in closed_signsV3:
-      desiredU = x
+      desiredU = x + (w/2)
       desiredV = y
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
@@ -145,11 +138,11 @@ class sign_detector:
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
       cv2.imshow("Image window", cv_image)
-      cv2.putText(cv_image,'Road Cloased',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)        
+      cv2.putText(cv_image,'Road Closed',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)        
       cv2.waitKey(3)
 
       sign = SignData()
-      sign.sign_type = 'Cloased Road'
+      sign.sign_type = 'Closed Road'
       sign.sign_position.x = int_data[0]
       sign.sign_position.y = int_data[1]
       sign.sign_position.z = int_data[2]
@@ -159,8 +152,8 @@ class sign_detector:
 
 
     for (x,y,w,h) in stop_signs:
-      desiredU = x
-      desiredV = y
+      desiredU = x + (w/2)
+      desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
@@ -184,8 +177,8 @@ class sign_detector:
       sign_data_array.data.append(sign)
 
     for (x,y,w,h) in ow_left_signs:
-      desiredU = x
-      desiredV = y
+      desiredU = x + (w/2)
+      desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
@@ -210,8 +203,8 @@ class sign_detector:
 
 
     for (x,y,w,h) in ow_right_signs:
-      desiredU = x
-      desiredV = y
+      desiredU = x + (w/2)
+      desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
       int_data = next(data_out)
       print(int_data)
