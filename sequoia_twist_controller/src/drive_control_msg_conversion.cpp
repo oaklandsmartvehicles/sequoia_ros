@@ -59,6 +59,7 @@ void recvSteering(const std_msgs::Float64ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
+  ros::init(argc, argv, "drive_control_msg_conversion");
   ros::NodeHandle n;
   ros::NodeHandle pn("~");
 
@@ -67,9 +68,9 @@ int main(int argc, char** argv)
   pub_steering = n.advertise<dbw_gem_msgs::SteeringCmd>("steering_cmd", 1);
 
  // ros::Subscriber sub_Gear = n.subscribe("Stc_gear_state", 1, recvGearState);
-  ros::Subscriber sub_brake = n.subscribe("Stc_brake_cmd", 1, recvBrake);
-  ros::Subscriber sub_throttle = n.subscribe("Stc_throttle_cmd", 1, recvThrottle);
-  ros::Subscriber sub_steering = n.subscribe("Stc_steering_cmd", 1, recvSteering);
+  ros::Subscriber sub_brake = n.subscribe("stc_brake_cmd", 1, recvBrake);
+  ros::Subscriber sub_throttle = n.subscribe("stc_throttle_cmd", 1, recvThrottle);
+  ros::Subscriber sub_steering = n.subscribe("stc_steering_cmd", 1, recvSteering);
 
 
   //ros::Timer timer_s = n.createTimer(ros::Duration(0.02), timerCallback);

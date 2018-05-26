@@ -10,13 +10,10 @@ SequoiaTwistController::SequoiaTwistController(ros::NodeHandle n, ros::NodeHandl
   sub_twist_cmd_ = n.subscribe("cmd_vel", 1, &SequoiaTwistController::recvTwistCmd, this);
   sub_twist_actual_ = n.subscribe("twist", 1, &SequoiaTwistController::recvTwistActual, this);
   sub_gear_state_ = n.subscribe("gear_state", 1, &SequoiaTwistController::recvGearState, this);
-//  pub_throttle_cmd_ = n.advertise<std_msgs::Float64>("throttle_cmd", 1);
-//  pub_brake_cmd_ = n.advertise<std_msgs::Float64>("brake_cmd", 1);
-//  pub_steering_cmd_ = n.advertise<std_msgs::Float64>("steering_cmd", 1);
+  pub_throttle_cmd_ = n.advertise<std_msgs::Float64>("throttle_cmd", 1);
+  pub_brake_cmd_ = n.advertise<std_msgs::Float64>("brake_cmd", 1);
+  pub_steering_cmd_ = n.advertise<std_msgs::Float64>("steering_cmd", 1);
 
-  pub_throttle_cmd_ = n.advertise<std_msgs::Float64>("Stc_throttle_cmd", 1);
-  pub_brake_cmd_ = n.advertise<std_msgs::Float64>("Stc_brake_cmd", 1);
-  pub_steering_cmd_ = n.advertise<std_msgs::Float64>("Stc_steering_cmd", 1);
  // pub_gear_state_ = n.advertise<std_msgs::Float64>("Stc_gear_state", 1);
 
   control_timer_ = n.createTimer(ros::Duration(0.02), &SequoiaTwistController::timerCallback, this);
