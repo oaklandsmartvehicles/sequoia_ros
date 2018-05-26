@@ -4,7 +4,7 @@ project(turn_sign_node)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   dynamic_reconfigure
-  sign_detection	
+  sign_detection
 )
 
 catkin_package()
@@ -16,6 +16,9 @@ include_directories(
 
 add_executable(turn_sign_plan
   src/turn_sign_plan.cpp
+)
+add_dependencies(turn_sign_plan
+  ${catkin_EXPORTED_TARGETS}
 )
 target_link_libraries(turn_sign_plan
   ${catkin_LIBRARIES}
