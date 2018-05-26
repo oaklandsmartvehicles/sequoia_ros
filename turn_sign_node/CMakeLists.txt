@@ -17,6 +17,9 @@ include_directories(
 add_executable(turn_sign_plan
   src/turn_sign_plan.cpp
 )
+add_dependencies(turn_sign_plan sign_detection_generate_messages_cpp)
+
+
 target_link_libraries(turn_sign_plan
   ${catkin_LIBRARIES}
 )
