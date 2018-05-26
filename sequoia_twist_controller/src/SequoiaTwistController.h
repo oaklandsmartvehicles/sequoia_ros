@@ -32,6 +32,7 @@ class SequoiaTwistController
     ros::Publisher pub_throttle_cmd_;
     ros::Publisher pub_brake_cmd_;
     ros::Publisher pub_steering_cmd_;
+    ros::Publisher pub_Gear_State;
     ros::Subscriber sub_twist_cmd_;
     ros::Subscriber sub_twist_actual_;
     ros::Subscriber sub_gear_state_;
