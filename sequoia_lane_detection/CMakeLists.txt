@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 
 generate_dynamic_reconfigure_options(
-  cfg/ValThresh.cfg
+  cfg/LaneDetection.cfg
 )
 
 catkin_package(
