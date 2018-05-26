@@ -13,6 +13,7 @@ LaneDetection::LaneDetection(ros::NodeHandle n, ros::NodeHandle pn)
   sub_image_ = n.subscribe("image_raw", 1, &LaneDetection::recvImage, this);
   pub_line_obstacles_ = n.advertise<costmap_converter::ObstacleArrayMsg>("line_obstacles", 1);
   pub_viz_obstacles_ = n.advertise<visualization_msgs::Marker>("viz_line_obstacles", 1);
+  pub_line_scan_ = n.advertise<sensor_msgs::LaserScan>("line_scan", 1);
 
   srv_.setCallback(boost::bind(&LaneDetection::reconfig, this, _1, _2));
 
@@ -22,7 +23,7 @@ LaneDetection::LaneDetection(ros::NodeHandle n, ros::NodeHandle pn)
 #endif
 }
 
-void LaneDetection::getBboxes(const Mat& bin_img, std::vector<Rect>& bboxes, Mat& label_viz_img)
+void LaneDetection::getBboxes(const Mat& bin_img, Mat& label_viz_img)
 {
   Mat label_img;
   Mat stats;
@@ -76,7 +77,7 @@ void LaneDetection::getBboxes(const Mat& bin_img, std::vector<Rect>& bboxes, Mat
 #endif
 }
 
-void LaneDetection::fitSegments(Mat& bin_img, const std::vector<Rect>& bboxes, std::vector<Eigen::VectorXd>& fit_params)
+void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_params)
 {
   fit_params.resize(bboxes.size());
   for (size_t i = 0; i < bboxes.size(); i++) {
@@ -121,6 +122,30 @@ void LaneDetection::fitSegments(Mat& bin_img, const std::vector<Rect>& bboxes, s
   }
 }
 
+std::vector<Vec2f> LaneDetection::detectStopLine(const Mat& bin_img)
+{
+  std::vector<Vec2f> output;
+  for (size_t i=0; i<bboxes.size(); i++) {
+    std::vector<Vec2f> hough_lines;
+    Mat canny_edge;
+    Canny(bin_img(bboxes[i]), canny_edge, 2, 4);
+    cv::HoughLines(canny_edge, hough_lines, cfg_.hough_rho_res, cfg_.hough_theta_res, cfg_.hough_threshold, 0, 0,
+                   M_PI/2 - cfg_.hough_horiz_tol, M_PI/2 + cfg_.hough_horiz_tol);
+
+    Vec2f avg_line(0, 0);
+    for (size_t j=0; j<hough_lines.size(); j++) {
+      avg_line[0] += hough_lines[j][0];
+      avg_line[1] += hough_lines[j][1];
+    }
+    avg_line[0] /= (float)hough_lines.size();
+    avg_line[1] /= (float)hough_lines.size();
+
+    output.push_back(avg_line);
+  }
+
+  return output;
+}
+
 int LaneDetection::sampleCurve(const Eigen::VectorXd& params, int y)
 {
   return params(0) * y * y * y + params(1) * y * y + params(2) * y + params(3);
@@ -152,12 +177,13 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
 
   erode(bin_img, bin_img, Mat::ones(cfg_.erode_size, cfg_.erode_size, CV_8U));
 
-  std::vector<Rect> bboxes;
   Mat labeled_image;
-  getBboxes(bin_img, bboxes, labeled_image);
+  getBboxes(bin_img, labeled_image);
+
+  std::vector<Vec2f> stop_line = detectStopLine(bin_img);
 
   std::vector<Eigen::VectorXd> fit_params;
-  fitSegments(bin_img, bboxes, fit_params);
+  fitSegments(bin_img, fit_params);
 
   std::vector<std::vector<cv::Point> > sampled_points;
   for (size_t i = 0; i < fit_params.size(); i++) {
@@ -191,6 +217,19 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
       cv::line(raw_img, sampled_points[i][j - 1], sampled_points[i][j], cv::Scalar(0, 0, 255));
     }
   }
+
+  for (size_t i=0; i<stop_line.size(); i++) {
+    float rho = stop_line[i][0], theta = stop_line[i][1];
+    Point p1, p2;
+    double a = cos(theta), b = sin(theta);
+    double x0 = a*rho, y0 = b*rho;
+    p1.x = cvRound(x0 + 1000*(-b)) + bboxes[i].x;
+    p1.y = cvRound(y0 + 1000*(a)) + bboxes[i].y;
+    p2.x = cvRound(x0 - 1000*(-b)) + bboxes[i].x;
+    p2.y = cvRound(y0 - 1000*(a)) + bboxes[i].y;
+    line(raw_img, p1, p2, cv::Scalar(255, 0, 0));
+  }
+
   imshow("Output Image", raw_img);
   waitKey(1);
 #endif
@@ -224,6 +263,8 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   viz_marker.scale.x = 0.1;
   viz_marker.pose.orientation.w = 1;
 
+  std::vector<geometry_msgs::Point32> line_points;
+
   for (size_t i = 0; i < sampled_points.size(); i++) {
     for (size_t j = 1; j < sampled_points[i].size(); j++) {
 
@@ -236,6 +277,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
       line_obstacle.polygon.points.push_back(p1);
       line_obstacle.polygon.points.push_back(p2);
       obstacle_msg.obstacles.push_back(line_obstacle);
+      line_points.push_back(p1);
 
       geometry_msgs::Point temp;
       temp.x = p1.x;
@@ -249,6 +291,29 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     }
   }
 
+  sensor_msgs::LaserScan scan_msg;
+  scan_msg.header.frame_id = "base_footprint";
+  scan_msg.header.stamp = msg->header.stamp;
+  scan_msg.angle_min = -M_PI / 2;
+  scan_msg.angle_max = M_PI / 2;
+  scan_msg.angle_increment = 0.03;
+  scan_msg.range_min = 0.0;
+  scan_msg.range_max = 30.0;
+  scan_msg.ranges.resize((int)((scan_msg.angle_max - scan_msg.angle_min ) / scan_msg.angle_increment), INFINITY);
+  for (size_t i=0; i<line_points.size(); i++) {
+    double range2 = line_points[i].x*line_points[i].x + line_points[i].y*line_points[i].y;
+    double angle = atan2(line_points[i].y, line_points[i].x);
+    int angle_bin = (int)((angle - scan_msg.angle_min) / scan_msg.angle_increment);
+
+    if ((angle_bin < 0) || (angle_bin > (scan_msg.ranges.size()-1))) {
+      continue;
+    }
+    if (range2 < scan_msg.ranges[angle_bin] * scan_msg.ranges[angle_bin]) {
+      scan_msg.ranges[angle_bin] = sqrt(range2);
+    }
+  }
+
+  pub_line_scan_.publish(scan_msg);
   pub_viz_obstacles_.publish(viz_marker);
   pub_line_obstacles_.publish(obstacle_msg);
 

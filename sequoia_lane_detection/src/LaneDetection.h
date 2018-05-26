@@ -14,6 +14,7 @@
 #include <sequoia_lane_detection/LaneDetectionConfig.h>
 #include <visualization_msgs/Marker.h>
 #include <eigen3/Eigen/Dense>
+#include <sensor_msgs/LaserScan.h>
 
 namespace sequoia_lane_detection
 {
@@ -28,9 +29,11 @@ private:
   void recvImage(const sensor_msgs::ImageConstPtr& msg);
   void recvCameraInfo(const sensor_msgs::CameraInfoConstPtr& msg);
 
-  void getBboxes(const cv::Mat& bin_img, std::vector<cv::Rect>& bboxes, cv::Mat& label_viz_img);
-  void fitSegments(cv::Mat& bin_img, const std::vector<cv::Rect>& bboxes, std::vector<Eigen::VectorXd>& fit_params);
+  void getBboxes(const cv::Mat& bin_img, cv::Mat& label_viz_img);
+  void fitSegments(cv::Mat& bin_img, std::vector<Eigen::VectorXd>& fit_params);
   int sampleCurve(const Eigen::VectorXd& params, int y);
+
+  std::vector<cv::Vec2f> detectStopLine(const cv::Mat& bin_img);
 
   geometry_msgs::Point32 projectPoint(const image_geometry::PinholeCameraModel& model,
                                       const tf::StampedTransform& transform,
@@ -43,11 +46,13 @@ private:
   ros::Subscriber sub_cam_info_;
   ros::Publisher pub_line_obstacles_;
   ros::Publisher pub_viz_obstacles_;
+  ros::Publisher pub_line_scan_;
 
   dynamic_reconfigure::Server<LaneDetectionConfig> srv_;
   LaneDetectionConfig cfg_;
 
   sensor_msgs::CameraInfo camera_info_;
+  std::vector<cv::Rect> bboxes;
 
 };
 
