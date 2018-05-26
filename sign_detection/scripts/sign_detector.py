@@ -35,6 +35,7 @@ class sign_detector:
     self.bridge = CvBridge()  
     self.image_sub = message_filters.Subscriber("/zed/left/image_raw_color", Image)
     self.cloud_sub = message_filters.Subscriber("/zed/point_cloud/cloud_registered", PointCloud2)
+    self.downsample_count = 0
 
     self.pub_sign_data = rospy.Publisher('sign_data', SignDataArray, queue_size=1)
 
@@ -42,6 +43,13 @@ class sign_detector:
     ts.registerCallback(self.callback)
 
   def callback(self, image, pointcloud):
+
+    if self.downsample_count < 10:
+      self.downsample_count += 1
+      return
+    else:
+      self.downsample_count = 0
+
     #Converts cv_bridge image type to opencv MAT type
     try:
       cv_image = self.bridge.imgmsg_to_cv2(image, "bgr8")

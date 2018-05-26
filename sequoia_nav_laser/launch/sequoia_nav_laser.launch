@@ -28,7 +28,7 @@
   <include file="$(find ekf_example)/launch/ekf_example.launch" />
 
 <rosparam file="$(find sequoia_nav_laser)/yaml/TrueHeading.yaml" />
-<param name="TrueHeading" value="1.463963" />	
+<param name="TrueHeading" value="0.0" />	
 
 
   <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />

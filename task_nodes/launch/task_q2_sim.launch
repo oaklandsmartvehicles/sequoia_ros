@@ -5,12 +5,34 @@
 
   <include file="$(find sequoia_twist_controller)/launch/sequoia_twist_controller.launch" />
 
+  <node ns="camera_sim" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" >
+    <remap from="line_obstacles" to="/move_base/TebLocalPlannerROS/obstacles" />
+  </node>
+
   <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" >
     <remap from="scan" to="/laser/scan" />
   </node>
 
-  <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" >
-    <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+<!--   <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" > -->
+<!--     <remap from="cmd_vel" to="/vehicle/cmd_vel" /> -->
+<!--   </node> -->
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen" >
+    <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_planner_params.yaml" ns="NavfnROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params.yaml" ns="global_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params.yaml" ns="local_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_planner_params.yaml" ns="TebLocalPlannerROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/costmap_converter_params.yaml" command="load" />
+    <remap from="cmd_vel" to="/vehicle/cmd_vel_b" />
   </node>
+
+  <node pkg="ekf_example" type="ekf_example" name="ekf_example"/>
+
+  <node ns="vehicle" pkg="task_nodes" type="multiplexor" name="multiplexor" output="screen" >
+
+  </node>
+
+  <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />
 
 </launch>

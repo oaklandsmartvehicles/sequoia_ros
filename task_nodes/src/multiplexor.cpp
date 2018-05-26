@@ -7,12 +7,18 @@ ros::Publisher pub_twist_cmd;
 ros::Publisher pub_gear_cmd;
 
 bool stop_trigger;
+bool stop_sign_trigger;
 geometry_msgs::Twist cmd;
 std_msgs::UInt8 gear;
 
 void recvStopTrigger(const std_msgs::BoolConstPtr& msg)
 {
   stop_trigger = msg->data;
+}
+
+void recvStopSignTrigger(const std_msgs::BoolConstPtr& msg)
+{
+  stop_sign_trigger = msg->data;
 }
 
 void recvTwist(const geometry_msgs::TwistConstPtr& msg)
@@ -58,6 +64,7 @@ int main(int argc, char** argv)
   pub_twist_cmd = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
   pub_gear_cmd = n.advertise<std_msgs::UInt8>("gear_cmd", 1);
   ros::Subscriber sub_stop_trigger = n.subscribe("stop_trigger", 1, recvStopTrigger);
+  ros::Subscriber sub_stop_sign_trigger = n.subscribe("stop_sign_trigger", 1, recvStopSignTrigger);
   ros::Subscriber sub_move_base = n.subscribe("cmd_vel_b", 1, recvTwist);
 
 

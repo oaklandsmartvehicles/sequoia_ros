@@ -1,30 +1,205 @@
 #include "LaneDetection.h"
 
-namespace sequoia_lane_detection {
+#define DEBUG 1
+
+using namespace cv;
+
+namespace sequoia_lane_detection
+{
 
 LaneDetection::LaneDetection(ros::NodeHandle n, ros::NodeHandle pn)
 {
   sub_cam_info_ = n.subscribe("camera_info", 1, &LaneDetection::recvCameraInfo, this);
-  sub_image_ = n.subscribe("image_rect_color", 1, &LaneDetection::recvImage, this);
+  sub_image_ = n.subscribe("image_raw", 1, &LaneDetection::recvImage, this);
   pub_line_obstacles_ = n.advertise<costmap_converter::ObstacleArrayMsg>("line_obstacles", 1);
+  pub_viz_obstacles_ = n.advertise<visualization_msgs::Marker>("viz_line_obstacles", 1);
+
+  srv_.setCallback(boost::bind(&LaneDetection::reconfig, this, _1, _2));
+
+#if DEBUG
+  namedWindow("Output Image", CV_WINDOW_NORMAL);
+  namedWindow("Binary", CV_WINDOW_NORMAL);
+#endif
+}
+
+void LaneDetection::getBboxes(const Mat& bin_img, std::vector<Rect>& bboxes, Mat& label_viz_img)
+{
+  Mat label_img;
+  Mat stats;
+  Mat centroids;
+  int num_labels = connectedComponentsWithStats(bin_img, label_img, stats, centroids);
+
+  bboxes.clear();
+  for (int label = 1; label < num_labels; label++) {
+    int x0 = stats.at<int>(label, CC_STAT_LEFT);
+    int y0 = stats.at<int>(label, CC_STAT_TOP);
+    int w = stats.at<int>(label, CC_STAT_WIDTH);
+    int h = stats.at<int>(label, CC_STAT_HEIGHT);
+
+    if (h > cfg_.min_seg_height) {
+      bboxes.push_back(Rect(x0, y0, w, h));
+    }
+  }
+
+#if DEBUG
+  label_viz_img = Mat(bin_img.size(), CV_8UC3);
+
+  std::vector<Vec3b> colors(num_labels);
+  colors[0] = Vec3b(0, 0, 0);
+  for (int label = 1; label < num_labels; label++) { //label  0 is the background
+    switch (label % 4) {
+      case 0:
+        colors[label] = Vec3b(0, 255, 0);
+        break;
+      case 1:
+        colors[label] = Vec3b(255, 0, 255);
+        break;
+      case 2:
+        colors[label] = Vec3b(255, 255, 0);
+        break;
+      case 3:
+        colors[label] = Vec3b(0, 255, 255);
+        break;
+    }
+  }
+
+  for (int r = 0; r < label_viz_img.rows; r++) {
+    for (int c = 0; c < label_viz_img.cols; c++) {
+      int label = label_img.at<int>(r, c);
+      Vec3b& pixel = label_viz_img.at<Vec3b>(r, c);
+      if (label == 0) {
+        pixel = Vec3b(0, 0, 0);
+      }
+      pixel = colors[label];
+    }
+  }
+#endif
+}
+
+void LaneDetection::fitSegments(Mat& bin_img, const std::vector<Rect>& bboxes, std::vector<Eigen::VectorXd>& fit_params)
+{
+  fit_params.resize(bboxes.size());
+  for (size_t i = 0; i < bboxes.size(); i++) {
+    // Run Canny edge detection to greatly cut down the number of points
+    Mat canny_edge;
+    Canny(bin_img(bboxes[i]), canny_edge, 2, 4);
+
+    std::vector<int> x_samples;
+    std::vector<int> y_samples;
+    for (int xx = 0; xx < canny_edge.cols; xx++) {
+      for (int yy = 0; yy < canny_edge.rows; yy++) {
+        if (canny_edge.at<uint8_t>(Point(xx, yy)) == 255) {
+          x_samples.push_back(xx);
+          y_samples.push_back(yy);
+        }
+      }
+    }
+
+    Eigen::VectorXd x_samples_eig(x_samples.size());
+    Eigen::MatrixXd regression_mat(y_samples.size(), 4);
+    for (size_t j = 0; j < x_samples.size(); j++) {
+      x_samples_eig(j) = (double)x_samples[j];
+      regression_mat.row(j) << (double)(y_samples[j] * y_samples[j] * y_samples[j]), (double)(y_samples[j] * y_samples[j]), (double)y_samples[j], 1.0;
+    }
+
+    Eigen::MatrixXd temp = regression_mat.transpose() * regression_mat;
+    Eigen::VectorXd params = temp.inverse() * regression_mat.transpose() * x_samples_eig;
+
+    double error = 0;
+    for (size_t j = 0; j < x_samples.size(); j++) {
+      double x_est = params(0) * y_samples[j] * y_samples[j] * y_samples[j] + params(1) * y_samples[j] * y_samples[j] + params(2) * y_samples[j] + params(3);
+      error += fabs(x_est - x_samples[j]);
+    }
+    error /= (double)x_samples.size();
+
+    if (error < cfg_.fit_tolerance) {
+      fit_params[i] = params;
+    } else {
+      fit_params[i] = Eigen::VectorXd();
+    }
+
+  }
+}
+
+int LaneDetection::sampleCurve(const Eigen::VectorXd& params, int y)
+{
+  return params(0) * y * y * y + params(1) * y * y + params(2) * y + params(3);
 }
 
 void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
 {
-  // Convert ROS image message into a cv::Mat
+  // Convert ROS image message into a Mat
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-  cv::Mat raw_img = cv_ptr->image;
+  Mat raw_img = cv_ptr->image;
+  cv::GaussianBlur(raw_img, raw_img, Size(cfg_.blur_kernel, cfg_.blur_kernel), 0, 0);
 
-  // Image processing goes here. Need vector of Hough line segments as output
-  std::vector<cv::Vec4i> line_segments;
-//   cv::HoughLinesP(dilate_img, line_segments, cfg_.hough_rho_res, cfg_.hough_theta_res, cfg_.hough_threshold, cfg_.hough_min_length, cfg_.hough_max_gap);
+  Mat raw_hsv;
+  cvtColor(raw_img, raw_hsv, CV_BGR2HSV);
 
+  std::vector<Mat> split_img;
+  split(raw_hsv, split_img);
+  Mat val_img = split_img[2];
+  Mat sat_img = split_img[1];
 
-  // Project Hough transform lines from camera into vehicle frame and publish as obstacles
+  Mat val_thres_img;
+  threshold(val_img, val_thres_img, cfg_.val_thres, 255, CV_THRESH_BINARY);
+
+  Mat sat_thres_img;
+  threshold(sat_img, sat_thres_img, cfg_.sat_thres, 255, CV_THRESH_BINARY_INV);
+
+  Mat bin_img;
+  bitwise_and(val_thres_img, sat_thres_img, bin_img);
+
+  erode(bin_img, bin_img, Mat::ones(cfg_.erode_size, cfg_.erode_size, CV_8U));
+
+  std::vector<Rect> bboxes;
+  Mat labeled_image;
+  getBboxes(bin_img, bboxes, labeled_image);
+
+  std::vector<Eigen::VectorXd> fit_params;
+  fitSegments(bin_img, bboxes, fit_params);
+
+  std::vector<std::vector<cv::Point> > sampled_points;
+  for (size_t i = 0; i < fit_params.size(); i++) {
+    if (fit_params[i].rows() == 0) {
+      continue;
+    }
+
+    std::vector<cv::Point> segment_points;
+    cv::Point new_point;
+    for (int y = 0; y < bboxes[i].height; y += cfg_.reconstruct_pix) {
+      new_point.x = sampleCurve(fit_params[i], y) + bboxes[i].x;
+      new_point.y = y + bboxes[i].y;
+      segment_points.push_back(new_point);
+    }
+    new_point.x = sampleCurve(fit_params[i], bboxes[i].height) + bboxes[i].x;
+    new_point.y = bboxes[i].height + bboxes[i].y;
+    segment_points.push_back(new_point);
+    sampled_points.push_back(segment_points);
+  }
+
+#if DEBUG
+  imshow("Binary", labeled_image);
+  waitKey(1);
+
+  for (size_t i = 0; i < bboxes.size(); i++) {
+    cv::rectangle(raw_img, bboxes[i], cv::Scalar(0, 255, 0));
+  }
+
+  for (size_t i = 0; i < sampled_points.size(); i++) {
+    for (size_t j = 1; j < sampled_points[i].size(); j++) {
+      cv::line(raw_img, sampled_points[i][j - 1], sampled_points[i][j], cv::Scalar(0, 0, 255));
+    }
+  }
+  imshow("Output Image", raw_img);
+  waitKey(1);
+#endif
+
+  // Project output lines from camera into vehicle frame and publish as obstacles
   tf::StampedTransform transform;
-  try{
+  try {
     listener_.lookupTransform("base_footprint", msg->header.frame_id, msg->header.stamp, transform);
-  } catch (tf::TransformException& ex){
+  } catch (tf::TransformException& ex) {
     ROS_WARN_THROTTLE(1.0, "%s", ex.what());
     return;
   }
@@ -37,28 +212,67 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   obstacle_msg.header.frame_id = "base_footprint";
   obstacle_msg.header.stamp = msg->header.stamp;
 
-  for (size_t i=0; i<line_segments.size(); i++) {
-    cv::Point2d p1(line_segments[i][0], line_segments[i][1]);
-    cv::Point2d p2(line_segments[i][2], line_segments[i][3]);
+  visualization_msgs::Marker viz_marker;
+  viz_marker.header.frame_id = "base_footprint";
+  viz_marker.header.stamp = msg->header.stamp;
+  viz_marker.action = visualization_msgs::Marker::ADD;
+  viz_marker.type = visualization_msgs::Marker::LINE_LIST;
+  viz_marker.color.a = 1.0;
+  viz_marker.color.r = 1.0;
+  viz_marker.color.g = 1.0;
+  viz_marker.color.b = 1.0;
+  viz_marker.scale.x = 0.1;
+  viz_marker.pose.orientation.w = 1;
 
-    costmap_converter::ObstacleMsg line_obstacle;
-    line_obstacle.header = obstacle_msg.header;
-    line_obstacle.id = i;
-    line_obstacle.orientation.w = 1.0;
-    line_obstacle.polygon.points.push_back(projectPoint(model, transform, cam_los_vect, p1));
-    line_obstacle.polygon.points.push_back(projectPoint(model, transform, cam_los_vect, p2));
-    obstacle_msg.obstacles.push_back(line_obstacle);
+  for (size_t i = 0; i < sampled_points.size(); i++) {
+    for (size_t j = 1; j < sampled_points[i].size(); j++) {
+
+      costmap_converter::ObstacleMsg line_obstacle;
+      line_obstacle.header = obstacle_msg.header;
+      line_obstacle.id = i * (sampled_points[i].size() - 1) + j;
+      line_obstacle.orientation.w = 1.0;
+      geometry_msgs::Point32 p1 = projectPoint(model, transform, cam_los_vect, sampled_points[i][j - 1]);
+      geometry_msgs::Point32 p2 = projectPoint(model, transform, cam_los_vect, sampled_points[i][j]);
+      line_obstacle.polygon.points.push_back(p1);
+      line_obstacle.polygon.points.push_back(p2);
+      obstacle_msg.obstacles.push_back(line_obstacle);
+
+      geometry_msgs::Point temp;
+      temp.x = p1.x;
+      temp.y = p1.y;
+      temp.z = p1.z;
+      viz_marker.points.push_back(temp);
+      temp.x = p2.x;
+      temp.y = p2.y;
+      temp.z = p2.z;
+      viz_marker.points.push_back(temp);
+    }
   }
 
+  pub_viz_obstacles_.publish(viz_marker);
   pub_line_obstacles_.publish(obstacle_msg);
+
+}
+
+void LaneDetection::reconfig(LaneDetectionConfig& config, uint32_t level)
+{
+  if (!(config.erode_size % 2)) {
+    config.erode_size--;
+  }
+
+  if (!(config.blur_kernel % 2)) {
+    config.blur_kernel--;
+  }
+
+  cfg_ = config;
 }
 
 geometry_msgs::Point32 LaneDetection::projectPoint(const image_geometry::PinholeCameraModel& model,
-                                                   const tf::StampedTransform& transform,
-                                                   const tf::Vector3& cam_los_vect,
-                                                   const cv::Point2d& p)
+    const tf::StampedTransform& transform,
+    const tf::Vector3& cam_los_vect,
+    const Point2d& p)
 {
-  cv::Point3d p3d = model.projectPixelTo3dRay(p);
+  Point3d p3d = model.projectPixelTo3dRay(p);
   tf::Vector3 v1 = transform(tf::Vector3(p3d.x, p3d.y, p3d.z));
   double d = -cam_los_vect.z() / (v1.z() - cam_los_vect.z());
   tf::Vector3 v_robot(d * (v1.x() - cam_los_vect.x()) + cam_los_vect.x(), d * (v1.y() - cam_los_vect.y()) + cam_los_vect.y(), 0);
