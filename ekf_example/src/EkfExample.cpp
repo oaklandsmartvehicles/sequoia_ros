@@ -7,7 +7,7 @@ namespace ekf_example {
 EkfExample::EkfExample(ros::NodeHandle n, ros::NodeHandle pn)
 {
     // Base sampling time of the filter
-  sample_time = 0.02;
+  sample_time = 0.01;
 
   // Subscribe to input data, advertise path, and set up main filter timer
   sub_fix = n.subscribe("/fix", 1, &EkfExample::recvFix, this);
@@ -68,6 +68,8 @@ void EkfExample::recvFix(const sensor_msgs::NavSatFixConstPtr& msg)
 
 void EkfExample::timerCallback(const ros::TimerEvent& event)
 {
+  
+  if(twist_data.linear.x > 0.01){
   double heading_est = X(2);
   double speed_est = X(3);
   double yaw_rate_est = X(4);
@@ -146,6 +148,8 @@ void EkfExample::timerCallback(const ros::TimerEvent& event)
   } else {
     X = predicted_state;
     P = predicted_cov;
+  }
+  
   }
   
   gps_available = false;
