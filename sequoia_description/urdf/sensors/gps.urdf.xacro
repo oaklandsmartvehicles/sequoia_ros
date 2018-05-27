@@ -38,8 +38,8 @@
         <referenceLongitude>-83.195249</referenceLongitude>
         <referenceHeading>90</referenceHeading>
         <velocityTopicName>fix_velocity</velocityTopicName>
-        <drift>5.0 5.0 5.0</drift>
-        <gaussianNoise>0.1 0.1 0.1</gaussianNoise>
+        <drift>0.0 0.0 0.0</drift>
+        <gaussianNoise>0.01 0.01 0.01</gaussianNoise>
         <velocityDrift>0 0 0</velocityDrift>
         <velocityGaussianNoise>0.1 0.1 0.1</velocityGaussianNoise>
       </plugin>
