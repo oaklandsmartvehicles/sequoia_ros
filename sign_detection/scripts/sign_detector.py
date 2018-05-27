@@ -28,7 +28,7 @@ class sign_detector:
     self.closed_cascadeV3  = cv2.CascadeClassifier(sign_detection_path + "road_closed_v3.xml")
     self.no_left_cascade = cv2.CascadeClassifier(sign_detection_path   + "no_trun_left_symbol_v2.xml")
     self.no_right_cascade = cv2.CascadeClassifier(sign_detection_path  + "no_turn_right.xml")
-        
+    self.no_turns_cascade = cv2.CascadeClassifier(sign_detection_path  + "no_turns.xml")   
 
     print(sign_detection_path) 
     #Setup message filter to synchronize the subscribers (Zed left camera, Registered Point Cloud)
@@ -65,11 +65,39 @@ class sign_detector:
 
     no_left_signs = self.no_left_cascade.detectMultiScale(gray,1.5,2)
     no_right_signs = self.no_right_cascade.detectMultiScale(gray,1.5,2) 
+    no_turns_signs = self.no_turns_cascade.detectMultiScale(gray) 
 
     sign_data_array = SignDataArray()
     sign_data_array.header = pointcloud.header
     font = cv2.FONT_HERSHEY_SIMPLEX
     #Acquire the point cloud x,y,z position from the u,v position index    
+    for (x,y,w,h) in no_turns_signs:
+      desiredU = x + (w/2)
+      desiredV = y + (h/2)
+      data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
+      int_data = next(data_out)
+      if  math.isinf(int_data[0]) or math.isnan(int_data[0]):
+        continue
+      
+      print(int_data)
+
+      # Draw position
+      cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
+      roi_gray = gray[y:y+h, x:x+w]
+      roi_color = cv_image[y:y+h, x:x+w]
+      cv2.imshow("Image window", cv_image)
+      cv2.putText(cv_image,'No Turns',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)
+      cv2.waitKey(3)
+
+      sign = SignData()
+      sign.sign_type = 'No Turns'
+      sign.sign_position.x = int_data[0]
+      sign.sign_position.y = int_data[1]
+      sign.sign_position.z = int_data[2]
+
+      sign_data_array.data.append(sign)
+
+
     for (x,y,w,h) in no_left_signs:
       desiredU = x + (w/2)
       desiredV = y + (h/2)
