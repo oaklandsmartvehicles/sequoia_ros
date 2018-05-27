@@ -14,6 +14,10 @@
     <remap from="cmd_vel" to="cmd_vel_b" />
   </node>
 
+
+<node ns="camera_sim" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" >
+    <remap from="line_obstacles" to="/move_base/TebLocalPlannerROS/obstacles" />
+  </node>
  
  <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" output="screen">
   <remap from="scan" to="/vehicle/urg_node/scan" />  
