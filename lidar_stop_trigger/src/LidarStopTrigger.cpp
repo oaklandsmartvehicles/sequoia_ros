@@ -33,7 +33,14 @@ void LidarStopTrigger::recvLidarScan(const sensor_msgs::LaserScanConstPtr& msg)
   int max_idx = center_idx + half_angle_idx_range;
 
   // Find minimum range value within the min and max indices
-  float min_range = *std::min_element(msg->ranges.begin() + min_idx, msg->ranges.begin() + max_idx);
+//   float min_range = *std::min_element(msg->ranges.begin() + min_idx, msg->ranges.begin() + max_idx);
+
+  float min_range = INFINITY;
+  for (size_t i=min_idx; i<max_idx; i++) {
+    if (msg->ranges[i] > msg->range_min && msg->ranges[i] < min_range) {
+      min_range = msg->ranges[i];
+    }
+  }
 
   // Apply hysteresis to avoid chattering of stop signal,
   // and publish when trigger changes state
