@@ -13,7 +13,7 @@ LaneDetection::LaneDetection(ros::NodeHandle n, ros::NodeHandle pn)
   sub_image_ = n.subscribe("image_raw", 1, &LaneDetection::recvImage, this);
   pub_line_obstacles_ = n.advertise<costmap_converter::ObstacleArrayMsg>("line_obstacles", 1);
   pub_viz_obstacles_ = n.advertise<visualization_msgs::Marker>("viz_line_obstacles", 1);
-  pub_line_scan_ = n.advertise<sensor_msgs::LaserScan>("line_scan", 1);
+  pub_line_cloud_ = n.advertise<sensor_msgs::PointCloud>("line_cloud", 1);
 
   srv_.setCallback(boost::bind(&LaneDetection::reconfig, this, _1, _2));
 
@@ -263,7 +263,9 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   viz_marker.scale.x = 0.1;
   viz_marker.pose.orientation.w = 1;
 
-  std::vector<geometry_msgs::Point32> line_points;
+  sensor_msgs::PointCloud line_points;
+  line_points.header.frame_id = "base_footprint";
+  line_points.header.stamp = msg->header.stamp;
 
   for (size_t i = 0; i < sampled_points.size(); i++) {
     for (size_t j = 1; j < sampled_points[i].size(); j++) {
@@ -277,7 +279,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
       line_obstacle.polygon.points.push_back(p1);
       line_obstacle.polygon.points.push_back(p2);
       obstacle_msg.obstacles.push_back(line_obstacle);
-      line_points.push_back(p1);
+      line_points.points.push_back(p1);
 
       geometry_msgs::Point temp;
       temp.x = p1.x;
@@ -291,29 +293,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     }
   }
 
-  sensor_msgs::LaserScan scan_msg;
-  scan_msg.header.frame_id = "base_footprint";
-  scan_msg.header.stamp = msg->header.stamp;
-  scan_msg.angle_min = -M_PI / 2;
-  scan_msg.angle_max = M_PI / 2;
-  scan_msg.angle_increment = 0.03;
-  scan_msg.range_min = 0.0;
-  scan_msg.range_max = 30.0;
-  scan_msg.ranges.resize((int)((scan_msg.angle_max - scan_msg.angle_min ) / scan_msg.angle_increment), INFINITY);
-  for (size_t i=0; i<line_points.size(); i++) {
-    double range2 = line_points[i].x*line_points[i].x + line_points[i].y*line_points[i].y;
-    double angle = atan2(line_points[i].y, line_points[i].x);
-    int angle_bin = (int)((angle - scan_msg.angle_min) / scan_msg.angle_increment);
-
-    if ((angle_bin < 0) || (angle_bin > (scan_msg.ranges.size()-1))) {
-      continue;
-    }
-    if (range2 < scan_msg.ranges[angle_bin] * scan_msg.ranges[angle_bin]) {
-      scan_msg.ranges[angle_bin] = sqrt(range2);
-    }
-  }
-
-  pub_line_scan_.publish(scan_msg);
+  pub_line_cloud_.publish(line_points);
   pub_viz_obstacles_.publish(viz_marker);
   pub_line_obstacles_.publish(obstacle_msg);
 

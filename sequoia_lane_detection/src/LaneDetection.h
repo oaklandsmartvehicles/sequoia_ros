@@ -14,7 +14,7 @@
 #include <sequoia_lane_detection/LaneDetectionConfig.h>
 #include <visualization_msgs/Marker.h>
 #include <eigen3/Eigen/Dense>
-#include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud.h>
 
 namespace sequoia_lane_detection
 {
@@ -46,7 +46,7 @@ private:
   ros::Subscriber sub_cam_info_;
   ros::Publisher pub_line_obstacles_;
   ros::Publisher pub_viz_obstacles_;
-  ros::Publisher pub_line_scan_;
+  ros::Publisher pub_line_cloud_;
 
   dynamic_reconfigure::Server<LaneDetectionConfig> srv_;
   LaneDetectionConfig cfg_;
