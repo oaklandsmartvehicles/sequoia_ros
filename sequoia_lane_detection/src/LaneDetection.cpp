@@ -13,7 +13,8 @@ LaneDetection::LaneDetection(ros::NodeHandle n, ros::NodeHandle pn)
   sub_image_ = n.subscribe("image_raw", 1, &LaneDetection::recvImage, this);
   pub_line_obstacles_ = n.advertise<costmap_converter::ObstacleArrayMsg>("line_obstacles", 1);
   pub_viz_obstacles_ = n.advertise<visualization_msgs::Marker>("viz_line_obstacles", 1);
-  pub_line_cloud_ = n.advertise<sensor_msgs::PointCloud>("line_cloud", 1);
+  pub_solid_line_cloud_ = n.advertise<sensor_msgs::PointCloud>("solid_line_cloud", 1);
+  pub_dashed_line_cloud_ = n.advertise<sensor_msgs::PointCloud>("dashed_line_cloud", 1);
 
   srv_.setCallback(boost::bind(&LaneDetection::reconfig, this, _1, _2));
 
@@ -185,7 +186,8 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   std::vector<Eigen::VectorXd> fit_params;
   fitSegments(bin_img, fit_params);
 
-  std::vector<std::vector<cv::Point> > sampled_points;
+  std::vector<std::vector<cv::Point> > solid_sampled_points;
+  std::vector<std::vector<cv::Point> > dashed_sampled_points;
   for (size_t i = 0; i < fit_params.size(); i++) {
     if (fit_params[i].rows() == 0) {
       continue;
@@ -201,7 +203,14 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     new_point.x = sampleCurve(fit_params[i], bboxes[i].height) + bboxes[i].x;
     new_point.y = bboxes[i].height + bboxes[i].y;
     segment_points.push_back(new_point);
-    sampled_points.push_back(segment_points);
+
+    int largest_dim = std::max(bboxes[i].height, bboxes[i].width);
+
+    if (largest_dim > cfg_.dashed_length) {
+      solid_sampled_points.push_back(segment_points);
+    } else {
+      dashed_sampled_points.push_back(segment_points);
+    }
   }
 
 #if DEBUG
@@ -212,9 +221,15 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     cv::rectangle(raw_img, bboxes[i], cv::Scalar(0, 255, 0));
   }
 
-  for (size_t i = 0; i < sampled_points.size(); i++) {
-    for (size_t j = 1; j < sampled_points[i].size(); j++) {
-      cv::line(raw_img, sampled_points[i][j - 1], sampled_points[i][j], cv::Scalar(0, 0, 255));
+  for (size_t i = 0; i < solid_sampled_points.size(); i++) {
+    for (size_t j = 1; j < solid_sampled_points[i].size(); j++) {
+      cv::line(raw_img, solid_sampled_points[i][j - 1], solid_sampled_points[i][j], cv::Scalar(0, 0, 255));
+    }
+  }
+
+  for (size_t i = 0; i < dashed_sampled_points.size(); i++) {
+    for (size_t j = 1; j < dashed_sampled_points[i].size(); j++) {
+      cv::line(raw_img, dashed_sampled_points[i][j - 1], dashed_sampled_points[i][j], cv::Scalar(255, 255, 0));
     }
   }
 
@@ -263,23 +278,14 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   viz_marker.scale.x = 0.1;
   viz_marker.pose.orientation.w = 1;
 
-  sensor_msgs::PointCloud line_points;
-  line_points.header.frame_id = "base_footprint";
-  line_points.header.stamp = msg->header.stamp;
-
-  for (size_t i = 0; i < sampled_points.size(); i++) {
-    for (size_t j = 1; j < sampled_points[i].size(); j++) {
-
-      costmap_converter::ObstacleMsg line_obstacle;
-      line_obstacle.header = obstacle_msg.header;
-      line_obstacle.id = i * (sampled_points[i].size() - 1) + j;
-      line_obstacle.orientation.w = 1.0;
-      geometry_msgs::Point32 p1 = projectPoint(model, transform, cam_los_vect, sampled_points[i][j - 1]);
-      geometry_msgs::Point32 p2 = projectPoint(model, transform, cam_los_vect, sampled_points[i][j]);
-      line_obstacle.polygon.points.push_back(p1);
-      line_obstacle.polygon.points.push_back(p2);
-      obstacle_msg.obstacles.push_back(line_obstacle);
-      line_points.points.push_back(p1);
+  sensor_msgs::PointCloud solid_line_points;
+  solid_line_points.header.frame_id = "base_footprint";
+  solid_line_points.header.stamp = msg->header.stamp;
+  for (size_t i = 0; i < solid_sampled_points.size(); i++) {
+    for (size_t j = 1; j < solid_sampled_points[i].size(); j++) {
+      geometry_msgs::Point32 p1 = projectPoint(model, transform, cam_los_vect, solid_sampled_points[i][j - 1]);
+      geometry_msgs::Point32 p2 = projectPoint(model, transform, cam_los_vect, solid_sampled_points[i][j]);
+      solid_line_points.points.push_back(p1);
 
       geometry_msgs::Point temp;
       temp.x = p1.x;
@@ -293,7 +299,29 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     }
   }
 
-  pub_line_cloud_.publish(line_points);
+  sensor_msgs::PointCloud dashed_line_points;
+  dashed_line_points.header.frame_id = "base_footprint";
+  dashed_line_points.header.stamp = msg->header.stamp;
+  for (size_t i = 0; i < dashed_sampled_points.size(); i++) {
+    for (size_t j = 1; j < dashed_sampled_points[i].size(); j++) {
+      geometry_msgs::Point32 p1 = projectPoint(model, transform, cam_los_vect, dashed_sampled_points[i][j - 1]);
+      geometry_msgs::Point32 p2 = projectPoint(model, transform, cam_los_vect, dashed_sampled_points[i][j]);
+      dashed_line_points.points.push_back(p1);
+
+      geometry_msgs::Point temp;
+      temp.x = p1.x;
+      temp.y = p1.y;
+      temp.z = p1.z;
+      viz_marker.points.push_back(temp);
+      temp.x = p2.x;
+      temp.y = p2.y;
+      temp.z = p2.z;
+      viz_marker.points.push_back(temp);
+    }
+  }
+
+  pub_solid_line_cloud_.publish(solid_line_points);
+  pub_dashed_line_cloud_.publish(dashed_line_points);
   pub_viz_obstacles_.publish(viz_marker);
   pub_line_obstacles_.publish(obstacle_msg);
 

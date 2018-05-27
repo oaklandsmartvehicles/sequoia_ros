@@ -46,7 +46,8 @@ private:
   ros::Subscriber sub_cam_info_;
   ros::Publisher pub_line_obstacles_;
   ros::Publisher pub_viz_obstacles_;
-  ros::Publisher pub_line_cloud_;
+  ros::Publisher pub_solid_line_cloud_;
+  ros::Publisher pub_dashed_line_cloud_;
 
   dynamic_reconfigure::Server<LaneDetectionConfig> srv_;
   LaneDetectionConfig cfg_;
