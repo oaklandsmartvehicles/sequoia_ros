@@ -1,15 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
-  <include file="$(find dbw_gem_can)/launch/dbw.launch" />
-  
-  <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="sequoia_twist_controller" >
-    <remap from="throttle_cmd" to="stc_throttle_cmd" />
-    <remap from="brake_cmd" to="stc_brake_cmd" />
-    <remap from="steering_cmd" to="stc_steering_cmd" />
-  </node>
-  
-  <node ns="vehicle" pkg="sequoia_twist_controller" type="drive_control_msg_conversion" name="drive_control_msg_conversion" />
+  <include file="$(find task_nodes)/launch/drive_by_wire.launch" >
+    <arg name="pub_pedals" value="true" />
+    <arg name="pub_steering" value="false" />
+  </include>
 
   <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" >
     <remap from="scan" to="scan_filtered" />

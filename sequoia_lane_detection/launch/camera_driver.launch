@@ -4,7 +4,7 @@
   <arg name="dev" default="/dev/video1" />
   <arg name="camera_name" default="lane_camera" />
   
-  <node pkg="usb_cam" type="usb_cam_node" name="usb_cam_driver" output="screen" >
+  <node pkg="usb_cam" type="usb_cam_node" name="usb_cam" output="screen" >
     <param name="video_device" value="$(arg dev)" />
     <param name="camera_name" value="$(arg camera_name)" />
     <param name="camera_frame_id" value="$(arg camera_name)" />

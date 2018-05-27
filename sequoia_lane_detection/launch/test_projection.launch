@@ -3,10 +3,9 @@
 
   <node ns="usb_cam" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" />
   
-  <include file="$(find sequoia_lane_detection)/launch/live_urdf.launch" />
+  <include file="$(find task_nodes)/launch/live_urdf.launch" />
   
   <node ns="usb_cam" pkg="sequoia_lane_detection" type="pub_camera_info.py" name="pub_camera_info" >
     <param name="yaml_file" value="$(find sequoia_lane_detection)/yaml/lane_camera.yaml" />
   </node>
-  
 </launch>
