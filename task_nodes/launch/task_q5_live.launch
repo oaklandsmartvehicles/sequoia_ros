@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find dbw_gem_can)/launch/dbw.launch" />
+  
+  <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="sequoia_twist_controller" >
+    <remap from="throttle_cmd" to="stc_throttle_cmd" />
+    <remap from="brake_cmd" to="stc_brake_cmd" />
+    <remap from="steering_cmd" to="stc_steering_cmd" />
+  </node>
+  
+  <node ns="vehicle" pkg="sequoia_twist_controller" type="drive_control_msg_conversion" name="drive_control_msg_conversion" />
+
+  <node pkg="stop_sign_node" type="stop_sign_plan" name="stop_sign_node" >
+  </node>
+
+  <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" >
+    <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+    <remap from="stop_trigger" to="stop_sign_trigger" />
+  </node>
+  
+  <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" />
+
+</launch>
