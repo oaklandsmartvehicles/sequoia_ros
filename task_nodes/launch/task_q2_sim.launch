@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <include file="$(find self_drive_tasks_gazebo)/launch/q2_gazebo.launch" />
+  <include file="$(find self_drive_tasks_gazebo)/launch/f11_gazebo.launch" />
 
   <include file="$(find sequoia_twist_controller)/launch/sequoia_twist_controller.launch" />
 
@@ -26,20 +26,37 @@
   <node pkg="move_base" type="move_base" name="move_base" output="screen" >
     <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
     <rosparam file="$(find sequoia_nav_laser)/yaml/global_planner_params.yaml" ns="NavfnROS" />
-    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params.yaml" ns="global_costmap" />
-    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params.yaml" ns="local_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params_solid_line.yaml" ns="global_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params_solid_line.yaml" ns="local_costmap" />
     <rosparam file="$(find sequoia_nav_laser)/yaml/local_planner_params.yaml" ns="TebLocalPlannerROS" />
     <rosparam file="$(find sequoia_nav_laser)/yaml/costmap_converter_params.yaml" command="load" />
-    <remap from="cmd_vel" to="/vehicle/cmd_vel_b" />
+    <remap from="cmd_vel" to="cmd_vel_b" />
   </node>
+
+  <node pkg="move_base" type="move_base" name="move_base_dashed" output="screen" >
+    <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_planner_params.yaml" ns="NavfnROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params_dashed_line.yaml" ns="global_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params_dashed_line.yaml" ns="local_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_planner_params.yaml" ns="TebLocalPlannerROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/costmap_converter_params.yaml" command="load" />
+    <remap from="cmd_vel" to="cmd_vel_b" />
+  </node>
+
+  
+
+
 
   <node pkg="ekf_example" type="ekf_example" name="ekf_example"/>
 
-  <node ns="vehicle" pkg="task_nodes" type="multiplexor" name="multiplexor" output="screen" >
-  <remap from="cmd_vel" to="/vehicle/cmd_vel" />
-    <remap from="gear_cmd" to="/vehicle/gear_cmd" />
-  </node>
+  
+
+ <rosparam file="$(find sequoia_nav_laser)/yaml/TrueHeading.yaml" />
+  <param name="TrueHeading" value="-1.5707" />	
+
 
   <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />
+
+<node pkg="rviz" type="rviz" name="sequoia_nav_laser_rviz" respawn="true" args="-d $(find sequoia_nav_laser)/rviz/rviz_config.rviz" />
 
 </launch>
