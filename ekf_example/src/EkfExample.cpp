@@ -13,7 +13,7 @@ EkfExample::EkfExample(ros::NodeHandle n, ros::NodeHandle pn)
   sub_fix = n.subscribe("/fix", 1, &EkfExample::recvFix, this);
   sub_twist = n.subscribe("/vehicle/twist", 1, &EkfExample::recvTwist, this);
   sub_gear = n.subscribe("/vehicle/gear_state", 1, &EkfExample::recvGear, this);
-
+  pub_heading_ = n.advertise<std_msgs::Float64>("ekf_heading", 1);
   timer = n.createTimer(ros::Duration(sample_time), &EkfExample::timerCallback, this);
 
   // Set up dynamic reconfigure server
@@ -163,7 +163,9 @@ void EkfExample::timerCallback(const ros::TimerEvent& event)
   ekf_transform.setRotation(tf::createQuaternionFromYaw(X(2)));
   ekf_transform.setOrigin(tf::Vector3(X(0), X(1), 0));
   broadcaster.sendTransform(ekf_transform);
-  
+  std_msgs::Float64 heading;
+  heading.data = X(2);
+  pub_heading_.publish(heading);
   
 }
 
