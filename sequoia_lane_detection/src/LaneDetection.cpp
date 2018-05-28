@@ -84,9 +84,27 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
 {
   fit_params.resize(bboxes.size());
   for (size_t i = 0; i < bboxes.size(); i++) {
-    // Run Canny edge detection on binary image to greatly cut down the number of points
+    
+    // Apply masks to avoid problems when bounding boxes overlap
+    Mat masked_img;
+    Mat mask = Mat::zeros(bin_img.size(), CV_8U);
+
+    mask(bboxes[i]) = Mat::ones(bboxes[i].height, bboxes[i].width, CV_8U);
+    for (size_t j=0; j<bboxes.size(); j++) {
+      if (i != j) {
+        int j_area = bboxes[j].width * bboxes[j].height;
+        int i_area = bboxes[i].width * bboxes[i].height;
+        // Mask out the other bounding box if it is smaller than the current one
+        if (j_area < i_area){
+          mask(bboxes[j]) = Mat::zeros(bboxes[j].height, bboxes[j].width, CV_8U);
+        }
+      }
+    }
+    bitwise_and(bin_img, mask, masked_img);
+
+    // Run Canny edge detection on masked image to greatly cut down the number of points
     Mat canny_edge;
-    Canny(bin_img(bboxes[i]), canny_edge, 2, 4);
+    Canny(masked_img(bboxes[i]), canny_edge, 2, 4);
 
     // Loop through current bounding box and extract pixels whose value
     // is 255 and put their coordinates in 'x_samples' and 'y_samples'
