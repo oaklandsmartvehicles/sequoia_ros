@@ -19,15 +19,16 @@ void recvSignData(const sign_detection::SignDataArrayConstPtr& msg)
 	  stop_trigger_temp.data = true;
 	  pub_stop_trigger.publish<std_msgs::Bool>(stop_trigger_temp);
 	  }
+      }
       }else {
-	  if(2 <= msg->data[i].sign_position.x){
+	  if((msg->data[i].sign_type != "Stop Sign") && (stop_trigger_temp.data == true)){
 	  stop_trigger_temp.data = false;
 	  pub_stop_trigger.publish<std_msgs::Bool>(stop_trigger_temp);
 	  }
       }
     }
   }
-}  
+  
 
 
 int main(int argc, char** argv)
