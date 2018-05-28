@@ -4,7 +4,6 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <costmap_converter/ObstacleArrayMsg.h>
 #include <opencv2/opencv.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <tf/tf.h>
@@ -44,8 +43,7 @@ private:
 
   ros::Subscriber sub_image_;
   ros::Subscriber sub_cam_info_;
-  ros::Publisher pub_line_obstacles_;
-  ros::Publisher pub_viz_obstacles_;
+  ros::Publisher pub_line_visualization_;
   ros::Publisher pub_solid_line_cloud_;
   ros::Publisher pub_dashed_line_cloud_;
 
