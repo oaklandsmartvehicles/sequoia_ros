@@ -1,10 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node ns="usb_cam" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" />
-  
+  <node ns="usb_cam" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" >
+    <param name="val_thres" value="175" />
+    <param name="erode_size" value="1" />
+  </node>
+
   <include file="$(find task_nodes)/launch/live_urdf.launch" />
-  
+
   <node ns="usb_cam" pkg="sequoia_lane_detection" type="pub_camera_info.py" name="pub_camera_info" >
     <param name="yaml_file" value="$(find sequoia_lane_detection)/yaml/lane_camera.yaml" />
   </node>
