@@ -49,12 +49,12 @@ class sign_detector:
     except CvBridgeError as e:
       print(e)
 
-    #Show left stereo camera image
-    cv2.imshow("Image window", cv_image)
-    cv2.waitKey(3)
 
+    height, width, channels = cv_image.shape
+    ROI = img[(0):(height/2),width/2:(width-1)]
     #U,V position in the image frame of the sign
-    gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+    
+    gray = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
     
     ow_left_signs = self.ow_left_cascade.detectMultiScale(gray) 
     ow_right_signs= self.ow_right_cascade.detectMultiScale(gray)
@@ -72,6 +72,8 @@ class sign_detector:
     font = cv2.FONT_HERSHEY_SIMPLEX
     #Acquire the point cloud x,y,z position from the u,v position index    
     for (x,y,w,h) in no_turns_signs:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -85,9 +87,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'No Turns',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'No Turns'
@@ -99,6 +101,8 @@ class sign_detector:
 
 
     for (x,y,w,h) in no_left_signs:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -112,9 +116,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'No Turn Left',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'No Turn Left'
@@ -125,6 +129,8 @@ class sign_detector:
       sign_data_array.data.append(sign)
 
     for (x,y,w,h) in no_right_signs:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y + (h/2) 
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -137,9 +143,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'No Turn Right',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)      
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'No Turn Right'
@@ -153,6 +159,8 @@ class sign_detector:
 
 
     for (x,y,w,h) in closed_signsV3:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -165,9 +173,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'Road Closed',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)        
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'Closed Road'
@@ -180,6 +188,8 @@ class sign_detector:
 
 
     for (x,y,w,h) in stop_signs:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -192,9 +202,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'Stop Sign',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)        
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'Stop Sign'
@@ -205,6 +215,8 @@ class sign_detector:
       sign_data_array.data.append(sign)
 
     for (x,y,w,h) in ow_left_signs:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -217,9 +229,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'One Way Left',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)        
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'One Way Left'
@@ -231,6 +243,8 @@ class sign_detector:
 
 
     for (x,y,w,h) in ow_right_signs:
+    #fix ROI displacment add (width/2) to x
+      x = x + (width/2)
       desiredU = x + (w/2)
       desiredV = y + (h/2)
       data_out = pc2.read_points(pointcloud,field_names=None, skip_nans=False, uvs=[[desiredU,desiredV]])
@@ -243,9 +257,9 @@ class sign_detector:
       cv2.rectangle(cv_image,(x,y),(x+w,y+h),(255,0,0),2)
       roi_gray = gray[y:y+h, x:x+w]
       roi_color = cv_image[y:y+h, x:x+w]
-      cv2.imshow("Image window", cv_image)
+      #cv2.imshow("Image window", cv_image)
       cv2.putText(cv_image,'One Way Right',(x+w,y+h), font, 0.5, (0,255,255), 2, cv2.LINE_AA)        
-      cv2.waitKey(3)
+      #cv2.waitKey(3)
 
       sign = SignData()
       sign.sign_type = 'One Way Right'
@@ -254,7 +268,10 @@ class sign_detector:
       sign.sign_position.z = int_data[2]
 
       sign_data_array.data.append(sign)
-
+    
+    #Show left stereo camera image
+    cv2.imshow("Image window", cv_image) 
+    cv2.waitKey(3)
     self.pub_sign_data.publish(sign_data_array)
 
 
