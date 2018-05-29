@@ -33,9 +33,9 @@ footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
 
 # GoalTolerance
   
-xy_goal_tolerance: 1
-yaw_goal_tolerance: 1
-free_goal_vel: False
+xy_goal_tolerance: 5
+yaw_goal_tolerance: 2
+free_goal_vel: true
   
 # Obstacles
   

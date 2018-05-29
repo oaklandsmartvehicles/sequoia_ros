@@ -93,12 +93,16 @@ int main(int argc, char** argv)
   ros::Subscriber sub_move_base_solid = n.subscribe("cmd_vel_solid", 1, recvTwist_solid);
   ros::Subscriber sub_move_base_dashed = n.subscribe("cmd_vel_dashed", 1, recvTwist_dashed);
   ros::Timer timer = n.createTimer(ros::Duration(0.02), &timerCallback);
+  
+  //TEST DELETE WHEN DONE
+  
+
 
 
 
 //   ros::Timer timer = n.createTimer(ros::Duration(0.08), &timerCallback);
 
   stop_trigger = false;
-  mode_trigger = 2;
+  mode_trigger = 1;
   ros::spin();
 }

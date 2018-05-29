@@ -11,6 +11,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <ekf_example/EkfExampleConfig.h>
 #include <std_msgs/UInt8.h>
+#include <std_msgs/Float64.h>
+
 
 
 #include <eigen3/Eigen/Dense>
@@ -33,6 +35,7 @@ private:
   ros::Subscriber sub_twist;
   ros::Subscriber sub_fix;
   ros::Subscriber sub_gear;
+  ros::Publisher pub_heading_;
   ros::Timer timer;
 
   dynamic_reconfigure::Server<EkfExampleConfig> srv_;
