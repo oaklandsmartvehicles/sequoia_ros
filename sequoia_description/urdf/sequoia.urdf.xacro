@@ -34,6 +34,23 @@
       <origin xyz="1.613 0 1.473" rpy="0 0.539 0" />
     </joint>
     
+    <link name="gps_antenna" >
+      <visual>
+        <geometry>
+          <cylinder radius="0.1" length="0.1" />
+        </geometry>
+        <material name="white">
+          <color rgba="1 1 1 1" />
+        </material>
+      </visual>
+    </link>
+    
+    <joint name="gps_antenna" type="fixed" >
+      <parent link="base_footprint" />
+      <child link="gps_antenna" />
+      <origin xyz="0.711 -0.559 1.905" rpy="0 0 0" />
+    </joint>
+    
   </xacro:if>
     
   <xacro:property name="half_front_track_width" value="0.6" />
