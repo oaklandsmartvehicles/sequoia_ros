@@ -93,12 +93,12 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
     Mat mask = Mat::zeros(bin_img.size(), CV_8U);
 
     mask(bboxes[i]) = Mat::ones(bboxes[i].height, bboxes[i].width, CV_8U);
-    for (size_t j=0; j<bboxes.size(); j++) {
+    for (size_t j = 0; j < bboxes.size(); j++) {
       if (i != j) {
         int j_area = bboxes[j].width * bboxes[j].height;
         int i_area = bboxes[i].width * bboxes[i].height;
         // Mask out the other bounding box if it is smaller than the current one
-        if (j_area < i_area){
+        if (j_area < i_area) {
           mask(bboxes[j]) = Mat::zeros(bboxes[j].height, bboxes[j].width, CV_8U);
         }
       }
@@ -114,7 +114,7 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
     std::vector<int> x_samples;
     std::vector<int> y_samples;
     for (int xx = 0; xx < canny_edge.cols; xx++) {
-      for (int yy = 0; yy < canny_edge.rows; yy+=8) {
+      for (int yy = 0; yy < canny_edge.rows; yy += 8) {
         if (canny_edge.at<uint8_t>(Point(xx, yy)) == 255) {
           x_samples.push_back(xx);
           y_samples.push_back(yy);
@@ -159,7 +159,7 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
     if (hough_lines. size() > 0) {
       int max_len_idx = 0;
       int max_len2 = 0;
-      for (size_t j=0; j<hough_lines.size(); j++) {
+      for (size_t j = 0; j < hough_lines.size(); j++) {
         int len2 = (hough_lines[j][2] - hough_lines[j][0]) * (hough_lines[j][2] - hough_lines[j][0]) + (hough_lines[j][3] - hough_lines[j][1]) * (hough_lines[j][3] - hough_lines[j][1]);
         if (len2 > max_len2) {
           max_len2 = len2;
@@ -178,16 +178,16 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
 std::vector<Vec2f> LaneDetection::detectStopLine(const Mat& bin_img)
 {
   std::vector<Vec2f> output;
-  for (size_t i=0; i<bboxes.size(); i++) {
+  for (size_t i = 0; i < bboxes.size(); i++) {
     std::vector<Vec2f> hough_lines;
     Mat canny_edge;
     Canny(bin_img(bboxes[i]), canny_edge, 2, 4);
 
     cv::HoughLines(canny_edge, hough_lines, cfg_.hough_rho_res, cfg_.hough_theta_res, cfg_.hough_threshold, 0, 0,
-                   M_PI/2 - cfg_.hough_horiz_tol, M_PI/2 + cfg_.hough_horiz_tol);
+                   M_PI / 2 - cfg_.hough_horiz_tol, M_PI / 2 + cfg_.hough_horiz_tol);
 
     Vec2f avg_line(0, 0);
-    for (size_t j=0; j<hough_lines.size(); j++) {
+    for (size_t j = 0; j < hough_lines.size(); j++) {
       avg_line[0] += hough_lines[j][0];
       avg_line[1] += hough_lines[j][1];
     }
@@ -306,7 +306,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     }
   }
 
-  for (size_t i=0; i < hough_segments.size(); i++) {
+  for (size_t i = 0; i < hough_segments.size(); i++) {
     std::vector<cv::Point> segment_points;
     cv::Point new_point;
     for (int y = hough_segments[i][1]; y <= hough_segments[i][3]; y += cfg_.reconstruct_pix) {
@@ -347,7 +347,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
 
   // Convert rhos and thetas from detected stop lines into a line
   // and show it as a blue line in the image
-  for (size_t i=0; i<stop_line.size(); i++) {
+  for (size_t i = 0; i < stop_line.size(); i++) {
     float rho = stop_line[i][0];
     if (rho > 0) {
       float t_theta = tan(stop_line[i][1]);
@@ -449,7 +449,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   // Find distance to closest stop line
   int max_y = 0;
   int x = bin_img.cols / 2;
-  for (size_t i=0; i<stop_line.size(); i++) {
+  for (size_t i = 0; i < stop_line.size(); i++) {
     float rho = stop_line[i][0];
     float theta = stop_line[i][1];
     if (rho > 0) {
@@ -461,7 +461,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   }
 #if DEBUG
   if (max_y > 0) {
-    cv::rectangle(raw_img, Rect(x-5, max_y-5, 10, 10), Scalar(255,255,255));
+    cv::rectangle(raw_img, Rect(x - 5, max_y - 5, 10, 10), Scalar(255, 255, 255));
   }
 
   // Show output image with all the lines and boxes
