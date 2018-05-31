@@ -2,6 +2,7 @@
 #define LANEDETECTION_H
 
 #include <ros/ros.h>
+#include <std_msgs/Float64.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <opencv2/opencv.hpp>
@@ -29,7 +30,7 @@ private:
   void recvCameraInfo(const sensor_msgs::CameraInfoConstPtr& msg);
 
   void getBboxes(const cv::Mat& bin_img, cv::Mat& label_viz_img);
-  void fitSegments(cv::Mat& bin_img, std::vector<Eigen::VectorXd>& fit_params);
+  void fitSegments(cv::Mat& bin_img, std::vector<Eigen::VectorXd>& fit_params, std::vector<cv::Vec4i>& hough_segments);
   int sampleCurve(const Eigen::VectorXd& params, int y);
 
   std::vector<cv::Vec2f> detectStopLine(const cv::Mat& bin_img);
@@ -46,12 +47,14 @@ private:
   ros::Publisher pub_line_visualization_;
   ros::Publisher pub_solid_line_cloud_;
   ros::Publisher pub_dashed_line_cloud_;
+  ros::Publisher pub_stop_line_dist_;
 
   dynamic_reconfigure::Server<LaneDetectionConfig> srv_;
   LaneDetectionConfig cfg_;
 
   sensor_msgs::CameraInfo camera_info_;
   std::vector<cv::Rect> bboxes;
+  int downsample_count;
 
 };
 

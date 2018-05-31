@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <include file="$(find self_drive_tasks_gazebo)/launch/q2_gazebo.launch" />
+  <include file="$(find self_drive_tasks_gazebo)/launch/q5_gazebo.launch" />
 
   <include file="$(find sequoia_twist_controller)/launch/sequoia_twist_controller.launch" />
 
@@ -9,8 +9,9 @@
     <remap from="scan" to="/laser/scan" />
   </node>
 
-  <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" >
+  <node pkg="task_nodes" type="stop_line_test" name="stop_line_test" output="screen" >
     <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+    <remap from="stop_line_dist" to="/camera_sim/stop_line_dist" />
   </node>
 
   <node ns="camera_sim" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" />

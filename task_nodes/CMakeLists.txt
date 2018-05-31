@@ -26,6 +26,13 @@ target_link_libraries(task_q5
   ${catkin_LIBRARIES}
 )
 
+add_executable(stop_line_test
+  src/stop_line_test.cpp
+)
+target_link_libraries(stop_line_test
+  ${catkin_LIBRARIES}
+)
+
 add_executable(multiplexor
   src/multiplexor.cpp
 )
@@ -38,5 +45,6 @@ install(
     task_q2
     task_q5
     multiplexor
+    stop_line_test
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

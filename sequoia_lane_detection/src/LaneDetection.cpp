@@ -14,8 +14,11 @@ LaneDetection::LaneDetection(ros::NodeHandle n, ros::NodeHandle pn)
   pub_line_visualization_ = n.advertise<visualization_msgs::Marker>("viz_line_obstacles", 1);
   pub_solid_line_cloud_ = n.advertise<sensor_msgs::PointCloud>("solid_line_cloud", 1);
   pub_dashed_line_cloud_ = n.advertise<sensor_msgs::PointCloud>("dashed_line_cloud", 1);
+  pub_stop_line_dist_ = n.advertise<std_msgs::Float64>("stop_line_dist", 1);
 
   srv_.setCallback(boost::bind(&LaneDetection::reconfig, this, _1, _2));
+
+  downsample_count = 0;
 
 #if DEBUG
   namedWindow("Output Image", CV_WINDOW_NORMAL);
@@ -80,11 +83,11 @@ void LaneDetection::getBboxes(const Mat& bin_img, Mat& label_viz_img)
 // For each blob's bounding box, fit the pixels to a 3rd oder polynomial,
 // with the vertical pixel index as the independent variable. The coefficients
 // of the curve fits are stored in the 'fit_params' argument
-void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_params)
+void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_params, std::vector<Vec4i>& hough_segments)
 {
   fit_params.resize(bboxes.size());
   for (size_t i = 0; i < bboxes.size(); i++) {
-    
+
     // Apply masks to avoid problems when bounding boxes overlap
     Mat masked_img;
     Mat mask = Mat::zeros(bin_img.size(), CV_8U);
@@ -111,7 +114,7 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
     std::vector<int> x_samples;
     std::vector<int> y_samples;
     for (int xx = 0; xx < canny_edge.cols; xx++) {
-      for (int yy = 0; yy < canny_edge.rows; yy++) {
+      for (int yy = 0; yy < canny_edge.rows; yy+=8) {
         if (canny_edge.at<uint8_t>(Point(xx, yy)) == 255) {
           x_samples.push_back(xx);
           y_samples.push_back(yy);
@@ -145,10 +148,28 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
     // otherwise, put an empty vector
     if (error < cfg_.fit_tolerance) {
       fit_params[i] = params;
+      continue;
     } else {
       fit_params[i] = Eigen::VectorXd();
     }
 
+    // If it gets here, that means fit error was too big... Use HoughLines
+    std::vector<Vec4i> hough_lines;
+    cv::HoughLinesP(canny_edge, hough_lines, cfg_.hough_rho_res, cfg_.hough_theta_res, cfg_.hough_threshold, 100, 50);
+    if (hough_lines. size() > 0) {
+      int max_len_idx = 0;
+      int max_len2 = 0;
+      for (size_t j=0; j<hough_lines.size(); j++) {
+        int len2 = (hough_lines[j][2] - hough_lines[j][0]) * (hough_lines[j][2] - hough_lines[j][0]) + (hough_lines[j][3] - hough_lines[j][1]) * (hough_lines[j][3] - hough_lines[j][1]);
+        if (len2 > max_len2) {
+          max_len2 = len2;
+          max_len_idx = j;
+        }
+      }
+
+      hough_segments.push_back(Vec4i(hough_lines[max_len_idx][0] + bboxes[i].x, hough_lines[max_len_idx][1] + bboxes[i].y,
+                                     hough_lines[max_len_idx][2] + bboxes[i].x, hough_lines[max_len_idx][3] + bboxes[i].y));
+    }
   }
 }
 
@@ -161,6 +182,7 @@ std::vector<Vec2f> LaneDetection::detectStopLine(const Mat& bin_img)
     std::vector<Vec2f> hough_lines;
     Mat canny_edge;
     Canny(bin_img(bboxes[i]), canny_edge, 2, 4);
+
     cv::HoughLines(canny_edge, hough_lines, cfg_.hough_rho_res, cfg_.hough_theta_res, cfg_.hough_threshold, 0, 0,
                    M_PI/2 - cfg_.hough_horiz_tol, M_PI/2 + cfg_.hough_horiz_tol);
 
@@ -169,9 +191,11 @@ std::vector<Vec2f> LaneDetection::detectStopLine(const Mat& bin_img)
       avg_line[0] += hough_lines[j][0];
       avg_line[1] += hough_lines[j][1];
     }
-    avg_line[0] /= (float)hough_lines.size();
-    avg_line[1] /= (float)hough_lines.size();
 
+    if (hough_lines.size() > 0) {
+      avg_line[0] /= (float)hough_lines.size();
+      avg_line[1] /= (float)hough_lines.size();
+    }
     output.push_back(avg_line);
   }
 
@@ -189,6 +213,13 @@ int LaneDetection::sampleCurve(const Eigen::VectorXd& params, int y)
 // image coming from Gazebo
 void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
 {
+  if (downsample_count < 1) {
+    downsample_count++;
+    return;
+  } else {
+    downsample_count = 0;
+  }
+
   // Convert ROS image message into an OpenCV Mat
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
   Mat raw_img = cv_ptr->image;
@@ -235,7 +266,8 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
 
   // Generate curve fits for each discrete blob
   std::vector<Eigen::VectorXd> fit_params;
-  fitSegments(bin_img, fit_params);
+  std::vector<Vec4i> hough_segments;
+  fitSegments(bin_img, fit_params, hough_segments);
 
   // Sample curve fits and put the sampled points in either
   // the solid line bin or the dashed line bin, based on the
@@ -274,6 +306,21 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     }
   }
 
+  for (size_t i=0; i < hough_segments.size(); i++) {
+    std::vector<cv::Point> segment_points;
+    cv::Point new_point;
+    for (int y = hough_segments[i][1]; y <= hough_segments[i][3]; y += cfg_.reconstruct_pix) {
+      float slope = (float)(hough_segments[i][2] - hough_segments[i][0]) / (float)(hough_segments[i][3] - hough_segments[i][1]);
+      new_point.x = slope * (y - hough_segments[i][1]) + hough_segments[i][0];
+      new_point.y = y;
+      segment_points.push_back(new_point);
+    }
+    new_point.x = hough_segments[i][2];
+    new_point.y = hough_segments[i][3];
+    segment_points.push_back(new_point);
+    solid_sampled_points.push_back(segment_points);
+  }
+
 #if DEBUG
   // Show colorized binary image
   imshow("Binary", labeled_image);
@@ -301,20 +348,19 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   // Convert rhos and thetas from detected stop lines into a line
   // and show it as a blue line in the image
   for (size_t i=0; i<stop_line.size(); i++) {
-    float rho = stop_line[i][0], theta = stop_line[i][1];
-    Point p1, p2;
-    double a = cos(theta), b = sin(theta);
-    double x0 = a*rho, y0 = b*rho;
-    p1.x = cvRound(x0 + 1000*(-b)) + bboxes[i].x;
-    p1.y = cvRound(y0 + 1000*(a)) + bboxes[i].y;
-    p2.x = cvRound(x0 - 1000*(-b)) + bboxes[i].x;
-    p2.y = cvRound(y0 - 1000*(a)) + bboxes[i].y;
-    line(raw_img, p1, p2, cv::Scalar(255, 0, 0));
+    float rho = stop_line[i][0];
+    if (rho > 0) {
+      float t_theta = tan(stop_line[i][1]);
+      float s_theta = sin(stop_line[i][1]);
+      Point p1, p2;
+      p1.x = bboxes[i].x;
+      p1.y = rho / s_theta - p1.x / t_theta + bboxes[i].y;
+      p2.x = bboxes[i].x + bboxes[i].width;
+      p2.y = rho / s_theta - p2.x / t_theta + bboxes[i].y;
+      line(raw_img, p1, p2, cv::Scalar(255, 0, 0));
+    }
   }
 
-  // Show output image with all the lines and boxes
-  imshow("Output Image", raw_img);
-  waitKey(1);
 #endif
 
   // Project output lines from camera into vehicle frame and publish as obstacles
@@ -400,10 +446,41 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     dashed_line_points.points.push_back(last_point);
   }
 
+  // Find distance to closest stop line
+  int max_y = 0;
+  int x = bin_img.cols / 2;
+  for (size_t i=0; i<stop_line.size(); i++) {
+    float rho = stop_line[i][0];
+    float theta = stop_line[i][1];
+    if (rho > 0) {
+      int y = (int)(rho / sin(theta) - x / tan(theta)) + bboxes[i].y;
+      if (y > max_y) {
+        max_y = y;
+      }
+    }
+  }
+#if DEBUG
+  if (max_y > 0) {
+    cv::rectangle(raw_img, Rect(x-5, max_y-5, 10, 10), Scalar(255,255,255));
+  }
+
+  // Show output image with all the lines and boxes
+  imshow("Output Image", raw_img);
+  waitKey(1);
+#endif
+
+  std_msgs::Float64 stop_line_dist_msg;
+  if (max_y == 0) {
+    stop_line_dist_msg.data = INFINITY;
+  } else {
+    geometry_msgs::Point32 stop_line_point = projectPoint(model, transform, cam_los_vect, Point(x, max_y));
+    stop_line_dist_msg.data = stop_line_point.x;
+  }
+
   pub_solid_line_cloud_.publish(solid_line_points);
   pub_dashed_line_cloud_.publish(dashed_line_points);
   pub_line_visualization_.publish(viz_marker);
-
+  pub_stop_line_dist_.publish(stop_line_dist_msg);
 }
 
 // Project 2D pixel point 'p' into vehicle's frame and return as 3D point
