@@ -25,32 +25,37 @@ void LidarStopTrigger::reconfig(LidarStopTriggerConfig& config, uint32_t level)
 
 void LidarStopTrigger::recvLidarScan(const sensor_msgs::LaserScanConstPtr& msg)
 {
-  // Compute min and max indices of desired LIDAR scan ranges
-  // based on configuration parameters
-  int center_idx = msg->ranges.size() / 2;
-  int half_angle_idx_range = (int)(0.5 * cfg_.angle_window / msg->angle_increment);
-  int min_idx = center_idx - half_angle_idx_range;
-  int max_idx = center_idx + half_angle_idx_range;
+  // Search for closest point in a y window
+  std::vector<double> possible_candidates;
 
-  // Find minimum range value within the min and max indices
-//   float min_range = *std::min_element(msg->ranges.begin() + min_idx, msg->ranges.begin() + max_idx);
+  for (size_t i=0; i<msg->ranges.size(); i++) {
+    if (msg->ranges[i] > msg->range_min) {
+      double angle = msg->angle_min + i * msg->angle_increment;
+      double x = msg->ranges[i] * cos(angle);
+      double y = msg->ranges[i] * sin(angle);
 
-  float min_range = INFINITY;
-  for (size_t i=min_idx; i<max_idx; i++) {
-    if (msg->ranges[i] > msg->range_min && msg->ranges[i] < min_range) {
-      min_range = msg->ranges[i];
+      if (fabs(y) < 0.5 * cfg_.window_width) {
+        possible_candidates.push_back(x);
+      }
+    }
+  }
+
+  double min_dist = INFINITY;
+  for (size_t i=0; i<possible_candidates.size(); i++) {
+    if (possible_candidates[i] < min_dist) {
+      min_dist = possible_candidates[i];
     }
   }
 
   // Apply hysteresis to avoid chattering of stop signal,
   // and publish when trigger changes state
   if (!stop_trigger_msg_.data) {
-    if (min_range < cfg_.sensitve_range) {
+    if (min_dist < cfg_.sensitve_range) {
       stop_trigger_msg_.data = true;
       pub_stop_trigger_.publish(stop_trigger_msg_);
     }
   } else {
-    if (min_range > (cfg_.sensitve_range + cfg_.range_hyst)) {
+    if (min_dist > (cfg_.sensitve_range + cfg_.range_hyst)) {
       stop_trigger_msg_.data = false;
       pub_stop_trigger_.publish(stop_trigger_msg_);
     }
