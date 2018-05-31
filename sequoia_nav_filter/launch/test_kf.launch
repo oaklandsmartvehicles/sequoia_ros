@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+
+  <param name="use_sim_time" value="true" />
+  
+  <node pkg="sequoia_nav_filter" type="sequoia_nav_filter" name="sequoia_nav_filter" output="screen" >
+    <param name="parent_frame" value="map" />
+    <param name="child_frame" value="base_footprint" />
+    <param name="antenna_frame" value="gps_antenna" />
+    <param name="initial_heading" value="0.0" />
+  </node>
+  
+  <include file="$(find dbw_gem_can)/launch/dbw.launch" />
+  
+  <include file="$(find task_nodes)/launch/live_urdf.launch" />
+  
+  <node pkg="rviz" type="rviz" name="kf_viz" args="-d $(find sequoia_nav_filter)/rviz/rviz_config.rviz" />
+  
+</launch>
