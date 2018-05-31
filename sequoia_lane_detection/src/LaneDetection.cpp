@@ -252,7 +252,9 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   // AND the two threshold images together to create the binary image to detect lines
   // with
   Mat bin_img;
-  bitwise_and(val_thres_img, sat_thres_img, bin_img);
+  Mat mask = Mat::zeros(val_thres_img.size(), CV_8U);
+  mask(Rect(0, 0, mask.cols, cfg_.mask_height)) = Mat::ones(cfg_.mask_height, val_thres_img.cols, CV_8U);
+  bitwise_and(val_thres_img, sat_thres_img, bin_img, mask);
 
   // Erode
   erode(bin_img, bin_img, Mat::ones(cfg_.erode_size, cfg_.erode_size, CV_8U));
