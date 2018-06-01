@@ -78,6 +78,8 @@ void timerCallback(const ros::TimerEvent& event)
 
       if (fabs(delta) > angle_change_thres) {
         state = LANE_KEEP_2;
+        std_msgs::Int8 go_straight_msg;
+        pub_move_vehicle_mode.publish(go_straight_msg);
       }
     }
       break;
