@@ -51,7 +51,7 @@ class sign_detector:
 
 
     height, width, channels = cv_image.shape
-    ROI = img[(0):(height/2),width/2:(width-1)]
+    ROI = cv_image[(0):(height/2),width/2:(width-1)]
     #U,V position in the image frame of the sign
     
     gray = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
