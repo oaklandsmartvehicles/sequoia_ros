@@ -156,10 +156,14 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
     // If it gets here, that means fit error was too big... Use HoughLines
     std::vector<Vec4i> hough_lines;
     cv::HoughLinesP(canny_edge, hough_lines, cfg_.hough_rho_res, cfg_.hough_theta_res, cfg_.hough_threshold, 100, 50);
-    if (hough_lines. size() > 0) {
-      int max_len_idx = 0;
+    if (hough_lines.size() > 0) {
+      int max_len_idx = -1;
       int max_len2 = 0;
       for (size_t j = 0; j < hough_lines.size(); j++) {
+        if (abs(hough_lines[j][3] - hough_lines[j][1]) < 50) {
+          continue;
+        }
+
         int len2 = (hough_lines[j][2] - hough_lines[j][0]) * (hough_lines[j][2] - hough_lines[j][0]) + (hough_lines[j][3] - hough_lines[j][1]) * (hough_lines[j][3] - hough_lines[j][1]);
         if (len2 > max_len2) {
           max_len2 = len2;
@@ -167,8 +171,10 @@ void LaneDetection::fitSegments(Mat& bin_img, std::vector<Eigen::VectorXd>& fit_
         }
       }
 
-      hough_segments.push_back(Vec4i(hough_lines[max_len_idx][0] + bboxes[i].x, hough_lines[max_len_idx][1] + bboxes[i].y,
-                                     hough_lines[max_len_idx][2] + bboxes[i].x, hough_lines[max_len_idx][3] + bboxes[i].y));
+      if (max_len_idx >= 0) {
+        hough_segments.push_back(Vec4i(hough_lines[max_len_idx][0] + bboxes[i].x, hough_lines[max_len_idx][1] + bboxes[i].y,
+                                       hough_lines[max_len_idx][2] + bboxes[i].x, hough_lines[max_len_idx][3] + bboxes[i].y));
+      }
     }
   }
 }
