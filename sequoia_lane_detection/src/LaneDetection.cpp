@@ -294,7 +294,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
     // resolution specified in the 'reconstruct_pix' parameter
     std::vector<cv::Point> segment_points;
     cv::Point new_point;
-    for (int y = 0; y < bboxes[i].height; y += cfg_.reconstruct_pix) {
+    for (int y = 25; y < bboxes[i].height; y += cfg_.reconstruct_pix) {
       new_point.x = sampleCurve(fit_params[i], y) + bboxes[i].x;
       new_point.y = y + bboxes[i].y;
       segment_points.push_back(new_point);
@@ -317,7 +317,7 @@ void LaneDetection::recvImage(const sensor_msgs::ImageConstPtr& msg)
   for (size_t i = 0; i < hough_segments.size(); i++) {
     std::vector<cv::Point> segment_points;
     cv::Point new_point;
-    for (int y = hough_segments[i][1]; y <= hough_segments[i][3]; y += cfg_.reconstruct_pix) {
+    for (int y = hough_segments[i][1] + 25; y <= hough_segments[i][3]; y += cfg_.reconstruct_pix) {
       float slope = (float)(hough_segments[i][2] - hough_segments[i][0]) / (float)(hough_segments[i][3] - hough_segments[i][1]);
       new_point.x = slope * (y - hough_segments[i][1]) + hough_segments[i][0];
       new_point.y = y;
