@@ -44,6 +44,6 @@
     
   </group>
   
-  <include file="$(find task_nodes)/launch/live_urdf.launch" />
+  <include file="$(find task_nodes)/launch/startup/live_urdf.launch" />
 
 </launch>

@@ -4,6 +4,7 @@ project(task_nodes)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   dynamic_reconfigure
+  tf
 )
 
 catkin_package()
@@ -19,6 +20,14 @@ target_link_libraries(lane_keep_and_stop
   ${catkin_LIBRARIES}
 )
 
+add_executable(turn_and_stop
+  src/turn_and_stop.cpp
+)
+target_link_libraries(turn_and_stop
+  ${catkin_LIBRARIES}
+)
+
+
 add_executable(multiplexor
   src/multiplexor.cpp
 )
@@ -30,5 +39,6 @@ install(
   TARGETS
     multiplexor
     lane_keep_and_stop
+    turn_and_stop
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
