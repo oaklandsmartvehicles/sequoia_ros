@@ -42,7 +42,8 @@
       <param name="accel_max" value="$(arg accel_max)" />
     </node>
     
-    <include file="$(find task_nodes)/launch/live_urdf.launch" />
   </group>
+  
+  <include file="$(find task_nodes)/launch/live_urdf.launch" />
 
 </launch>

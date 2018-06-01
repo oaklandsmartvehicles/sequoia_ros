@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <include file="$(find task_nodes)/launch/startup/drive_by_wire.launch" />
+  
+  <node pkg="sequoia_nav_filter" type="sequoia_nav_filter" name="sequoia_nav_filter" output="screen" >
+    <param name="parent_frame" value="map" />
+    <param name="child_frame" value="base_footprint" />
+    <param name="antenna_frame" value="gps_antenna" />
+    <param name="initial_heading" value="0.0" />
+  </node>
+  
+  <include file="$(find swiftnav_ros)/launch/swiftnav_ros.launch" />
+  
+</launch>

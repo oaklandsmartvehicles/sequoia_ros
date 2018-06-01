@@ -12,24 +12,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(task_q2
-  src/task_q2.cpp
+add_executable(lane_keep_and_stop
+  src/lane_keep_and_stop.cpp
 )
-target_link_libraries(task_q2
-  ${catkin_LIBRARIES}
-)
-
-add_executable(task_q5
-  src/task_q5.cpp
-)
-target_link_libraries(task_q5
-  ${catkin_LIBRARIES}
-)
-
-add_executable(stop_line_test
-  src/stop_line_test.cpp
-)
-target_link_libraries(stop_line_test
+target_link_libraries(lane_keep_and_stop
   ${catkin_LIBRARIES}
 )
 
@@ -42,9 +28,7 @@ target_link_libraries(multiplexor
 
 install(
   TARGETS
-    task_q2
-    task_q5
     multiplexor
-    stop_line_test
+    lane_keep_and_stop
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

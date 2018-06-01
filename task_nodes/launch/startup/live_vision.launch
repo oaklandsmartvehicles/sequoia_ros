@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <arg name="sign_detection" default="false" />
+
+  <!-- Sign detection -->
+  <group if="$(arg sign_detection)" >
+    <include file="$(find sign_detection)/launch/sign_detection_depth.launch" />
+    
+    <node pkg="stop_sign_node" type="stop_sign_plan" name="stop_sign_plan" output="screen" />
+  </group>
+  
+  <!-- Lane camera driver -->
+  <include file="$(find sequoia_lane_detection)/launch/camera_driver.launch" >
+    <arg name="dev" value="/dev/video1" />
+    <arg name="camera_name" value="lane_camera" />
+  </include>
+  
+  <!-- Lane image processing pipeline -->
+  <node ns="lane_camera" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" >
+    <param name="val_thres" value="175" />
+    <param name="erode_size" value="1" />
+  </node>
+  
+</launch>

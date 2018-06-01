@@ -10,9 +10,7 @@
     <param name="initial_heading" value="0.0" />
   </node>
   
-  <include file="$(find dbw_gem_can)/launch/dbw.launch" />
-  
-  <include file="$(find task_nodes)/launch/live_urdf.launch" />
+  <include file="$(find task_nodes)/launch/drive_by_wire.launch" />
   
   <node pkg="rviz" type="rviz" name="kf_viz" args="-d $(find sequoia_nav_filter)/rviz/rviz_config.rviz" />
   

@@ -5,11 +5,13 @@
 
   <include file="$(find sequoia_twist_controller)/launch/sequoia_twist_controller.launch" />
 
-  <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" >
-    <remap from="scan" to="/laser/scan" />
-  </node>
-
-  <node pkg="task_nodes" type="stop_line_test" name="stop_line_test" output="screen" >
+  <include file="$(find task_nodes)/launch/startup/sim_lidar.launch" />
+  
+  <include file="$(find task_nodes)/launch/startup/sim_navigation.launch" >
+    <arg name="initial_heading" value="1.5707" />
+  </include>
+  
+  <node pkg="task_nodes" type="lane_keep_and_stop" name="lane_keep_and_stop" output="screen" >
     <remap from="cmd_vel" to="/vehicle/cmd_vel" />
     <remap from="stop_line_dist" to="/camera_sim/stop_line_dist" />
   </node>

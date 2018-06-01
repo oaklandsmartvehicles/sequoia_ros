@@ -5,18 +5,21 @@
 
   <include file="$(find sequoia_twist_controller)/launch/sequoia_twist_controller.launch" />
 
-  <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" output="screen" >
-    <remap from="scan" to="/laser/scan_filtered" />
-  </node>
+  <include file="$(find task_nodes)/launch/startup/sim_lidar.launch" >
+    <arg name="input_scan_topic" value="laser/scan" />
+  </include>
   
-  <node ns="laser" pkg="laser_filters" type="scan_to_scan_filter_chain" name="scan_filter" output="screen" respawn="true" >
-    <rosparam file="$(find sequoia_nav_laser)/yaml/laser_filter_params.yaml" />
-  </node>
+  <include file="$(find task_nodes)/launch/startup/sim_navigation.launch" >
+    <arg name="initial_heading" value="0.0" />
+  </include>
 
-  <node pkg="task_nodes" type="task_q2" name="task_q2" output="screen" >
+  <node pkg="task_nodes" type="lane_keep_and_stop" name="lane_keep_and_stop" output="screen" >
     <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+    <remap from="stop_line_dist" to="none" />
+    <param name="sensitive_range" value="6.0" />
   </node>
 
   <node ns="camera_sim" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" />
 
+  
 </launch>

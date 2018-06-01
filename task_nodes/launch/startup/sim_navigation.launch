@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="cmd_vel_topic" default="move_base_cmd_vel" />
+  <arg name="initial_heading" default="0.0" />
+  
+  <node pkg="move_vehicle" type="move_vehicle" name="move_vehicle" output="screen" />
+
+  <node pkg="move_base" type="move_base" name="move_base" output="screen" >
+    <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_planner_params.yaml" ns="NavfnROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params_dashed_line.yaml" ns="global_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params_dashed_line.yaml" ns="local_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_planner_params.yaml" ns="TebLocalPlannerROS" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/costmap_converter_params.yaml" command="load" />
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />
+  </node>
+  
+  <node pkg="ekf_example" type="ekf_example" name="ekf_example"/>
+  <param name="TrueHeading" value="$(arg initial_heading)" />
+  
+</launch>
