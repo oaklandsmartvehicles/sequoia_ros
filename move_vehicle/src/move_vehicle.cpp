@@ -4,6 +4,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include "gps_conv.h"
 #include <std_msgs/Float64.h>
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
 
 int num_o_wp,crs,col_x,col_y ;
 
@@ -26,6 +28,7 @@ UTMCoords ref_utm;
 UTMCoords current_utm;
 LatLon current_lla;
 
+tf::TransformListener *listener_;
 
 
 std_msgs::Float64 vehicle_heading;
@@ -80,23 +83,28 @@ void recvHeading(const std_msgs::Float64ConstPtr& msg)
 
 
 void next_wp(int x){
+  
+   // Project output lines from camera into vehicle frame and publish as obstacles
+  tf::StampedTransform transform;
+  try {
+    listener_->lookupTransform("map", "base_footprint", ros::Time(0), transform);
+  } catch (tf::TransformException& ex) {
+    ROS_WARN_THROTTLE(1.0, "%s", ex.what());
+    return;
+  }
 
-  tf::Vector3 T_GV(utm_position.x(), utm_position.y(), 0);
-  tf::Quaternion q_GV = tf::createQuaternionFromYaw(vehicle_heading.data);
-  tf::Transform transform;
-  transform.setOrigin(T_GV);
-  transform.setRotation(q_GV);
-  tf::Vector3 target_vehicle(10, 0, 0);
+
+  tf::Vector3 target_vehicle(30, 0, 0);
   target_global = transform * target_vehicle;
   
   //goal_msg.header.stamp = ros::Time::now();
   goal_msg.header.frame_id = "map";
   goal_msg.pose.position.x = target_global.x();
   goal_msg.pose.position.y = target_global.y();
-  goal_msg.pose.orientation.x = q_GV.x();
-  goal_msg.pose.orientation.y = q_GV.y();
-  goal_msg.pose.orientation.z = q_GV.z();
-  goal_msg.pose.orientation.w = q_GV.w();
+  goal_msg.pose.orientation.x = transform.getRotation().x();
+  goal_msg.pose.orientation.y = transform.getRotation().y();
+  goal_msg.pose.orientation.z = transform.getRotation().z();
+  goal_msg.pose.orientation.w = transform.getRotation().w();
   pub_goal.publish(goal_msg);
   
 
@@ -119,6 +127,7 @@ int main(int argc, char **argv) {
   ros::NodeHandle node;
   
   latch_gps = 0;
+  listener_ = new tf::TransformListener;
 
   double x,y;
   int zone,hemi;
@@ -133,7 +142,7 @@ int main(int argc, char **argv) {
   pub_dist = node.advertise<std_msgs::Float64>("/dist_to_goal", 1);
 
   ros::Timer control_timer;
-  control_timer = node.createTimer(ros::Duration(1.0), timerCallback);
+  control_timer = node.createTimer(ros::Duration(3.0), timerCallback);
   ros::Duration(5).sleep();
 //   next_wp(0);
   ros::spin();

@@ -3,7 +3,8 @@ project(move_vehicle)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  dynamic_reconfigure	
+  dynamic_reconfigure
+  tf	
 )
 
 catkin_package()
