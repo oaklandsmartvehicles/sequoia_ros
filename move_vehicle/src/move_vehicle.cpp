@@ -6,6 +6,7 @@
 #include <std_msgs/Float64.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include <std_msgs/Int8.h>
 
 int num_o_wp,crs,col_x,col_y ;
 
@@ -33,6 +34,8 @@ tf::TransformListener *listener_;
 
 std_msgs::Float64 vehicle_heading;
 
+std_msgs::Int8 move_mode;
+
 
 //Outpot GPS coordinates of a 2d Nav Goal point selected on RViz
 void recvUMT(const geometry_msgs::PoseStamped& msg) 
@@ -56,22 +59,9 @@ geometry_msgs::PoseStamped goal_msg;
 std_msgs::Float64 dist_to_goal;
 
 
-void recvfix(const sensor_msgs::NavSatFixConstPtr& msg)
+void recvMODE(const std_msgs::Int8ConstPtr& msg)
 {
- // Set reference coordinates
-  if (latch_gps == 0){
-  LatLon ref_point(*msg);
-  ref_utm = UTMCoords(ref_point);  
-  latch_gps = 1;
-  }
-  
-  UTMCoords current_utm_temp(*msg);
-  LatLon current_lla_temp(*msg);
-  
-  current_utm = current_utm_temp;
-  current_lla = current_lla_temp;
-  utm_position = current_utm-ref_utm;
-
+  move_mode = *msg;
 }
 
 void recvHeading(const std_msgs::Float64ConstPtr& msg)
@@ -92,9 +82,25 @@ void next_wp(int x){
     ROS_WARN_THROTTLE(1.0, "%s", ex.what());
     return;
   }
+  
+  int x_temp,y_temp,z_temp;
 
-
-  tf::Vector3 target_vehicle(30, 0, 0);
+  if(move_mode.data == 0){
+    x_temp = 30;
+    y_temp = -5;
+    z_temp = 0;
+  }else if(move_mode.data== 1){
+    x_temp = 30;
+    y_temp = 7;
+    z_temp = 0;
+  }else if(move_mode.data == 2){
+    x_temp = 5;
+    y_temp = -45;
+    z_temp = 0;
+  }
+  
+  tf::Vector3 target_vehicle(x_temp, y_temp, z_temp);
+  
   target_global = transform * target_vehicle;
   
   //goal_msg.header.stamp = ros::Time::now();
@@ -117,8 +123,8 @@ void timerCallback(const ros::TimerEvent& event)
 //   {
     next_wp(1);
 //   }
-  dist_to_goal.data = position_err;
-  pub_dist.publish(dist_to_goal);
+// dist_to_goal.data = position_err;
+//   pub_dist.publish(dist_to_goal);
 }
 
 int main(int argc, char **argv) {
@@ -128,6 +134,7 @@ int main(int argc, char **argv) {
   
   latch_gps = 0;
   listener_ = new tf::TransformListener;
+  move_mode.data = 0;
 
   double x,y;
   int zone,hemi;
@@ -135,14 +142,16 @@ int main(int argc, char **argv) {
   node.getParam("/TrueHeading", vehicle_heading.data);
 
 
-  ros::Subscriber subscribe_to_fix = node.subscribe("/fix",1,recvfix);
-  ros::Subscriber subscribe_to_heading = node.subscribe("/ekf_heading",1,recvHeading);
-  ros::Subscriber subscribe_to_rviz = node.subscribe("/move_base_simple/goal",1,recvUMT);
+//   ros::Subscriber subscribe_to_fix = node.subscribe("/fix",1,recvfix);
+//   ros::Subscriber subscribe_to_heading = node.subscribe("/ekf_heading",1,recvHeading);
+  
+  ros::Subscriber subscribe_to_rviz = node.subscribe("/move_vehicle_mode",1,recvMODE);
+//   ros::Subscriber subscribe_to_rviz = node.subscribe("/move_base_simple/goal",1,recvUMT);
   pub_goal = node.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1);
   pub_dist = node.advertise<std_msgs::Float64>("/dist_to_goal", 1);
 
   ros::Timer control_timer;
-  control_timer = node.createTimer(ros::Duration(3.0), timerCallback);
+  control_timer = node.createTimer(ros::Duration(1.0), timerCallback);
   ros::Duration(5).sleep();
 //   next_wp(0);
   ros::spin();

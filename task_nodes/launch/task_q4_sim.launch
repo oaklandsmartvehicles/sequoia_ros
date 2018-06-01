@@ -18,8 +18,8 @@
   <node pkg="task_nodes" type="turn_and_stop" name="turn_and_stop" output="screen" >
     <remap from="cmd_vel" to="/vehicle/cmd_vel" />
     <remap from="stop_line_dist" to="/camera_sim/stop_line_dist" />
-    <param name="sensitive_range" value="4.2" />
-    <param name="angle_change_thres" value="1.25" />
+    <param name="sensitive_range" value="5.0" />
+    <param name="angle_change_thres" value="1.0" />
     <param name="turn_direction" value="right" />
   </node>
 
