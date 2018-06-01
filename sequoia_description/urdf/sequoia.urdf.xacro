@@ -31,7 +31,7 @@
     <joint name="camera_mount" type="fixed" >
       <parent link="base_footprint" />
       <child link="lane_camera_optical" />
-      <origin xyz="1.613 0 1.473" rpy="0 0.539 0" />
+      <origin xyz="1.435 0 1.6" rpy="0 0.68 0" />
     </joint>
     
     <link name="gps_antenna" >
