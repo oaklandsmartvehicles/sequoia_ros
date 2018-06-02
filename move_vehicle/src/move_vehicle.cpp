@@ -91,7 +91,7 @@ void next_wp(int x){
     z_temp = 0;
   }else if(move_mode.data== 1){
     x_temp = 30;
-    y_temp = 7;
+    y_temp = 6;
     z_temp = 0;
   }else if(move_mode.data == 2){
     x_temp = 5;
