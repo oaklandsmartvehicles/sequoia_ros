@@ -92,6 +92,7 @@ void SequoiaNavFilter::recvData(const geometry_msgs::TwistStampedConstPtr& vehic
   if (vehicle_data->twist.linear.x < 0.01) {
     stationary_ = true;
     publishOutputs(rtk_data->header.stamp);
+    last_stamp_ = rtk_data->header.stamp;
     return;
   } else {
     stationary_ = false;

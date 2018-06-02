@@ -44,6 +44,9 @@ void timerCallback(const ros::TimerEvent& event)
       }
       break;
     case STOP:
+      if (!lidar_stop_trigger && stop_line_dist > sensitive_range) {
+        state = LANE_KEEP;
+      }
       break;
   }
 
