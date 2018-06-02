@@ -106,25 +106,64 @@ void SequoiaNavFilter::recvData(const geometry_msgs::TwistStampedConstPtr& vehic
   EkfPrediction(sample_time, predicted_state, predicted_cov);
 
   // Update Step
-  Matrix<double, 6, 1> measurements;
-  Matrix<double, 6, 1> expected_measurements;
-  C.setZero();
+  VectorXd measurements;
+  VectorXd expected_measurements;
+  MatrixXd C;
+  MatrixXd R;
+
   double c13 = -gps_ant_offset_.x() * sin(X(HEADING)) - gps_ant_offset_.y() * cos(X(HEADING));
   double c23 = gps_ant_offset_.x() * cos(X(HEADING)) - gps_ant_offset_.y() * sin(X(HEADING));
-  C.row(0) << 1, 0, c13, 0, 0;
-  C.row(1) << 0, 1, c23, 0, 0;
-  C.row(2) << 0, 0, -X(SPEED) * sin(X(HEADING)), cos(X(HEADING)), 0;
-  C.row(3) << 0, 0, X(SPEED) * cos(X(HEADING)), sin(X(HEADING)), 0;
-  C.row(4) << 0, 0, 0, 1, 0;
-  C.row(5) << 0, 0, 0, 0, 1;
+  if (vehicle_data->twist.linear.x < cfg_.min_gps_vel) {
+    C.setZero(4, 5);
+    measurements.setZero(4);
+    expected_measurements.setZero(4);
+    R.setZero(4, 4);
 
-  measurements << rtk_data->pose.pose.position.x, rtk_data->pose.pose.position.y,
-                  rtk_data->twist.twist.linear.x, rtk_data->twist.twist.linear.y,
-                  vehicle_data->twist.linear.x, vehicle_data->twist.angular.z;
+    C.row(0) << 1, 0, c13, 0, 0;
+    C.row(1) << 0, 1, c23, 0, 0;
+    C.row(2) << 0, 0, 0, 1, 0;
+    C.row(3) << 0, 0, 0, 0, 1;
 
-  double x_meas = X(POS_X) + gps_ant_offset_.x() * cos(X(HEADING)) - gps_ant_offset_.y() * sin(X(HEADING));
-  double y_meas = X(POS_Y) + gps_ant_offset_.x() * sin(X(HEADING)) + gps_ant_offset_.y() * cos(X(HEADING));
-  expected_measurements << x_meas, y_meas, X(SPEED) * cos(X(HEADING)), X(SPEED) * sin(X(HEADING)), X(SPEED), X(YAW_RATE);
+    measurements << rtk_data->pose.pose.position.x, rtk_data->pose.pose.position.y,
+                    vehicle_data->twist.linear.x, vehicle_data->twist.angular.z;
+
+    double x_meas = X(POS_X) + gps_ant_offset_.x() * cos(X(HEADING)) - gps_ant_offset_.y() * sin(X(HEADING));
+    double y_meas = X(POS_Y) + gps_ant_offset_.x() * sin(X(HEADING)) + gps_ant_offset_.y() * cos(X(HEADING));
+    expected_measurements << x_meas, y_meas, X(SPEED), X(YAW_RATE);
+
+    R(0, 0) = cfg_.r_gps * cfg_.r_gps;
+    R(1, 1) = cfg_.r_gps * cfg_.r_gps;
+    R(2, 2) = cfg_.r_speed * cfg_.r_speed;
+    R(3, 3) = cfg_.r_yaw_rate * cfg_.r_yaw_rate;
+
+  } else {
+    C.setZero(6, 5);
+    measurements.setZero(6);
+    expected_measurements.setZero(6);
+    R.setZero(6, 6);
+
+    C.row(0) << 1, 0, c13, 0, 0;
+    C.row(1) << 0, 1, c23, 0, 0;
+    C.row(2) << 0, 0, -X(SPEED) * sin(X(HEADING)), cos(X(HEADING)), 0;
+    C.row(3) << 0, 0, X(SPEED) * cos(X(HEADING)), sin(X(HEADING)), 0;
+    C.row(4) << 0, 0, 0, 1, 0;
+    C.row(5) << 0, 0, 0, 0, 1;
+
+    measurements << rtk_data->pose.pose.position.x, rtk_data->pose.pose.position.y,
+                    rtk_data->twist.twist.linear.x, rtk_data->twist.twist.linear.y,
+                    vehicle_data->twist.linear.x, vehicle_data->twist.angular.z;
+
+    double x_meas = X(POS_X) + gps_ant_offset_.x() * cos(X(HEADING)) - gps_ant_offset_.y() * sin(X(HEADING));
+    double y_meas = X(POS_Y) + gps_ant_offset_.x() * sin(X(HEADING)) + gps_ant_offset_.y() * cos(X(HEADING));
+    expected_measurements << x_meas, y_meas, X(SPEED) * cos(X(HEADING)), X(SPEED) * sin(X(HEADING)), X(SPEED), X(YAW_RATE);
+
+    R(0, 0) = cfg_.r_gps * cfg_.r_gps;
+    R(1, 1) = cfg_.r_gps * cfg_.r_gps;
+    R(2, 2) = cfg_.r_gps_vel * cfg_.r_gps_vel;
+    R(3, 3) = cfg_.r_gps_vel* cfg_.r_gps_vel;
+    R(4, 4) = cfg_.r_speed * cfg_.r_speed;
+    R(5, 5) = cfg_.r_yaw_rate * cfg_.r_yaw_rate;
+  }
 
   MatrixXd S = C * predicted_cov * C.transpose() + R;
   MatrixXd K = predicted_cov * C.transpose() * S.inverse();
@@ -171,13 +210,14 @@ void SequoiaNavFilter::reconfig(EkfConfig& config, uint32_t level)
   Q(3, 3) = config.q_speed * config.q_speed;
   Q(4, 4) = config.q_yaw_rate * config.q_yaw_rate;
 
-  R.setZero();
-  R(0, 0) = config.r_gps * config.r_gps;
-  R(1, 1) = config.r_gps * config.r_gps;
-  R(2, 2) = config.r_gps_vel * config.r_gps_vel;
-  R(3, 3) = config.r_gps_vel* config.r_gps_vel;
-  R(4, 4) = config.r_speed * config.r_speed;
-  R(5, 5) = config.r_yaw_rate * config.r_yaw_rate;
+  cfg_ = config;
+//   R.setZero();
+//   R(0, 0) = config.r_gps * config.r_gps;
+//   R(1, 1) = config.r_gps * config.r_gps;
+//   R(2, 2) = config.r_gps_vel * config.r_gps_vel;
+//   R(3, 3) = config.r_gps_vel* config.r_gps_vel;
+//   R(4, 4) = config.r_speed * config.r_speed;
+//   R(5, 5) = config.r_yaw_rate * config.r_yaw_rate;
 }
 
 }

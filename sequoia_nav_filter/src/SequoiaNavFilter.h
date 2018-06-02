@@ -46,12 +46,13 @@ private:
   tf::TransformBroadcaster br;
   tf::TransformListener listener;
   dynamic_reconfigure::Server<EkfConfig> srv_;
+  EkfConfig cfg_;
 
   Eigen::Matrix<double, 5, 5> Q;
-  Eigen::Matrix<double, 6, 6> R;
+//   Eigen::Matrix<double, 6, 6> R;
   Eigen::Matrix<double, 5, 1> X;
   Eigen::Matrix<double, 5, 5> P;
-  Eigen::Matrix<double, 6, 5> C;
+//   Eigen::Matrix<double, 6, 5> C;
 
   ros::Time last_stamp_;
   tf::Vector3 gps_ant_offset_;
