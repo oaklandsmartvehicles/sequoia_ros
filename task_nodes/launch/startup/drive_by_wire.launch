@@ -4,8 +4,8 @@
   <arg name="ackermann_track"     default="1.3970"/>
   <arg name="steering_ratio"      default="17.0"/>
   <arg name="wheel_radius"        default="0.2921"/>
-  <arg name="decel_max" default="0.5"/>
-  <arg name="accel_max" default="1.5"/>
+  <arg name="decel_max" default="2.0"/>
+  <arg name="accel_max" default="0.75"/>
   <arg name="pub_pedals" default="true" />
   <arg name="pub_steering" default="true" />
 
