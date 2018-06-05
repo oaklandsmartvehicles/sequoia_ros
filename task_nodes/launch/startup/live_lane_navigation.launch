@@ -8,8 +8,8 @@
   <node pkg="move_base" type="move_base" name="move_base" output="screen" >
     <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
     <rosparam file="$(find sequoia_nav_laser)/yaml/global_planner_params.yaml" ns="NavfnROS" />
-    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params_dashed_line.yaml" ns="global_costmap" />
-    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params_dashed_line.yaml" ns="local_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/global_costmap_params_solid_line.yaml" ns="global_costmap" />
+    <rosparam file="$(find sequoia_nav_laser)/yaml/local_costmap_params_solid_line.yaml" ns="local_costmap" />
     <rosparam file="$(find sequoia_nav_laser)/yaml/local_planner_params.yaml" ns="TebLocalPlannerROS" />
     <rosparam file="$(find sequoia_nav_laser)/yaml/costmap_converter_params.yaml" command="load" />
     <remap from="cmd_vel" to="$(arg cmd_vel_topic)" />

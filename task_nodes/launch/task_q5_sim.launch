@@ -14,8 +14,11 @@
   <node pkg="task_nodes" type="lane_keep_and_stop" name="lane_keep_and_stop" output="screen" >
     <remap from="cmd_vel" to="/vehicle/cmd_vel" />
     <remap from="stop_line_dist" to="/camera_sim/stop_line_dist" />
+    <param name="sensitive_range" value = "5.0" />
   </node>
 
   <node ns="camera_sim" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" />
 
+  <node pkg="rviz" type="rviz" name="sequoia_nav_laser_rviz" respawn="true" args="-d $(find sequoia_nav_laser)/rviz/rviz_config.rviz" />
+  
 </launch>

@@ -7,6 +7,7 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include <std_msgs/Int8.h>
+#include <std_srvs/Empty.h>
 
 int num_o_wp,crs,col_x,col_y ;
 
@@ -17,6 +18,7 @@ int latch_gps;
 int wp=0;
 //Distance
 double position_err;
+ros::ServiceClient clear_costmap_srv;
 
 
 tf::Vector3 utm_position; //relative to start point
@@ -38,7 +40,7 @@ std_msgs::Int8 move_mode;
 
 
 //Outpot GPS coordinates of a 2d Nav Goal point selected on RViz
-void recvUMT(const geometry_msgs::PoseStamped& msg) 
+void recvUMT(const geometry_msgs::PoseStamped& msg)
 {
 LatLon output;
 output = ref_utm + tf::Vector3(msg.pose.position.x, msg.pose.position.y, 0);
@@ -73,7 +75,7 @@ void recvHeading(const std_msgs::Float64ConstPtr& msg)
 
 
 void next_wp(int x){
-  
+
    // Project output lines from camera into vehicle frame and publish as obstacles
   tf::StampedTransform transform;
   try {
@@ -82,27 +84,30 @@ void next_wp(int x){
     ROS_WARN_THROTTLE(1.0, "%s", ex.what());
     return;
   }
-  
+
   int x_temp,y_temp,z_temp;
 
   if(move_mode.data == 0){
     x_temp = 30;
-    y_temp = -5;
+    y_temp = 2.0;
     z_temp = 0;
+
   }else if(move_mode.data== 1){
     x_temp = 30;
-    y_temp = 6;
+    y_temp = 13;
     z_temp = 0;
+
   }else if(move_mode.data == 2){
-    x_temp = 5;
-    y_temp = -45;
+    x_temp = 30;
+    y_temp = -8;
     z_temp = 0;
   }
-  
+
+
   tf::Vector3 target_vehicle(x_temp, y_temp, z_temp);
-  
+
   target_global = transform * target_vehicle;
-  
+
   //goal_msg.header.stamp = ros::Time::now();
   goal_msg.header.frame_id = "map";
   goal_msg.pose.position.x = target_global.x();
@@ -112,7 +117,11 @@ void next_wp(int x){
   goal_msg.pose.orientation.z = transform.getRotation().z();
   goal_msg.pose.orientation.w = transform.getRotation().w();
   pub_goal.publish(goal_msg);
-  
+
+  std_srvs::EmptyRequest req;
+  std_srvs::EmptyResponse res;
+  clear_costmap_srv.call(req, res);
+
 
 }
 
@@ -128,30 +137,32 @@ void timerCallback(const ros::TimerEvent& event)
 }
 
 int main(int argc, char **argv) {
-  
+
   ros::init(argc, argv, "move_vehicle");
   ros::NodeHandle node;
-  
+
   latch_gps = 0;
   listener_ = new tf::TransformListener;
   move_mode.data = 0;
 
   double x,y;
   int zone,hemi;
-  
+
   node.getParam("/TrueHeading", vehicle_heading.data);
 
 
 //   ros::Subscriber subscribe_to_fix = node.subscribe("/fix",1,recvfix);
 //   ros::Subscriber subscribe_to_heading = node.subscribe("/ekf_heading",1,recvHeading);
-  
+
   ros::Subscriber subscribe_to_rviz = node.subscribe("/move_vehicle_mode",1,recvMODE);
 //   ros::Subscriber subscribe_to_rviz = node.subscribe("/move_base_simple/goal",1,recvUMT);
   pub_goal = node.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1);
   pub_dist = node.advertise<std_msgs::Float64>("/dist_to_goal", 1);
 
+  clear_costmap_srv = node.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+
   ros::Timer control_timer;
-  control_timer = node.createTimer(ros::Duration(1.0), timerCallback);
+  control_timer = node.createTimer(ros::Duration(0.3), timerCallback);
   ros::Duration(5).sleep();
 //   next_wp(0);
   ros::spin();

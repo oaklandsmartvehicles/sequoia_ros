@@ -91,6 +91,9 @@ void timerCallback(const ros::TimerEvent& event)
       }
       break;
     case STOP:
+      if (!lidar_stop_trigger) {
+        state = LANE_KEEP_2;
+      }
       break;
   }
 

@@ -23,7 +23,9 @@ obstacles:
 
   observation_sources: solid_line_cloud  
   solid_line_cloud: 
+    #topic: /camera_sim/solid_line_cloud
     topic: /lane_camera/solid_line_cloud
+
     sensor_frame: /base_footprint
     data_type: PointCloud
     marking: true
@@ -36,13 +38,15 @@ obstacles_line:
   observation_sources: dashed_line_cloud  
   dashed_line_cloud: 
     topic: /lane_camera/dashed_line_cloud
+    #topic: /camera_sim/dashed_line_cloud
+
     sensor_frame: /base_footprint
     data_type: PointCloud
     marking: true
     clearing: false
   
 inflation:
-  inflation_radius: 0.5
-  cost_scaling_factor: 0.5
+  inflation_radius: 0.9
+  cost_scaling_factor: 0.9
 
 

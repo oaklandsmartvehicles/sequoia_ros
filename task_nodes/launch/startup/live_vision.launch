@@ -18,7 +18,6 @@
   
   <!-- Lane image processing pipeline -->
   <node ns="lane_camera" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" >
-    <param name="val_thres" value="175" />
     <param name="erode_size" value="1" />
   </node>
   

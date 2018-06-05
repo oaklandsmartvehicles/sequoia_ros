@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node pkg="task_nodes" type="turn_and_stop" name="turn_and_stop" output="screen" >
+  <node pkg="task_nodes" type="lane_keep_and_stop1" name="lane_keep_and_stop1" output="screen" >
     <remap from="cmd_vel" to="/vehicle/cmd_vel" />
+    <param name="stop_time" value="200.0" />
+    <param name="sensitve_range" value="4.0" />
     <remap from="stop_line_dist" to="/lane_camera/stop_line_dist" />
-    <param name="sensitive_range" value="2.6" />
-    <param name="angle_change_thres" value="1.0" />
-    <param name="turn_direction" value="right" />
-  </node>
+    </node>
   
   <include file="$(find task_nodes)/launch/startup/live_lane_navigation.launch" />
   

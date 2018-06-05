@@ -1,7 +1,7 @@
 global_frame: /map
 robot_base_frame: /base_footprint
 transform_tolerance: 0.1
-robot_radius: 0.3
+robot_radius: 0.2
 
 update_frequency: 5.0
 publish_frequency: 2.0
@@ -9,7 +9,7 @@ rolling_window: false
 
 width: 200
 height: 200
-resolution: 0.15
+resolution: 0.1
 origin_x: -100
 origin_y: -100
 
@@ -31,20 +31,21 @@ obstacles:
     marking: true
     clearing: true
 
+
 obstacles_line:
   obstacle_range: 9.5
   raytrace_range: 10.0
 
   observation_sources: solid_line_cloud  
   solid_line_cloud: 
-    topic: /camera_sim/solid_line_cloud
+    #topic: /camera_sim/solid_line_cloud
+    topic: /lane_camera/solid_line_cloud
     sensor_frame: /base_footprint
     data_type: PointCloud
     marking: true
     clearing: false
   
 inflation:
-  inflation_radius: 0.5
-  cost_scaling_factor: 0.5
-
+  inflation_radius: 0.4
+  cost_scaling_factor: 0.9
 

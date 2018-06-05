@@ -1,9 +1,9 @@
 TebLocalPlannerROS:
- costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
- costmap_converter_spin_thread: True
- costmap_converter_rate: 5
- costmap_converter/CostmapToPolygonsDBSMCCH:
-    cluster_max_distance: 1.0
-    cluster_min_pts: 5
-    cluster_max_pts: 500
-    convex_hull_min_pt_separation: 0.1
+    costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
+    costmap_converter_spin_thread: True
+    costmap_converter_rate: 5
+    costmap_converter/CostmapToPolygonsDBSMCCH:
+      cluster_max_distance: 1.0
+      cluster_min_pts: 5
+      cluster_max_pts: 500
+      convex_hull_min_pt_separation: 0.1

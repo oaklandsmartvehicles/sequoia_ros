@@ -27,6 +27,13 @@ target_link_libraries(turn_and_stop
   ${catkin_LIBRARIES}
 )
 
+add_executable(lane_keep_and_stop1
+  src/lane_keep_and_stop1.cpp
+)
+target_link_libraries(lane_keep_and_stop1
+  ${catkin_LIBRARIES}
+)
+
 
 add_executable(multiplexor
   src/multiplexor.cpp
