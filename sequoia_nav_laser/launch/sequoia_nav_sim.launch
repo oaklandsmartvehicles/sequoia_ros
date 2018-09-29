@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-  <include file="$(find sequoia_gazebo)/launch/spawn_sequoia.launch" >
+  <include file="$(find igvc_self_drive_gazebo)/launch/spawn_gem.launch" >
     <arg name="start_x" value="0.0" />
     <arg name="start_y" value="0.0" />
     <arg name="start_yaw" value="1.463963" />

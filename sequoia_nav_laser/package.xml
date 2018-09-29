@@ -9,14 +9,14 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>move_base</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>rviz</exec_depend>
   <exec_depend>ekf_example</exec_depend>
   <exec_depend>tf</exec_depend>
-  <exec_depend>sequoia_gazebo</exec_depend>
+  <exec_depend>igvc_self_drive_gazebo</exec_depend>
   <exec_depend>sequoia_twist_controller</exec_depend>
   <exec_depend>laser_filters</exec_depend>
   <exec_depend>lidar_stop_trigger</exec_depend>
   <exec_depend>task_nodes</exec_depend>
-  <exec_depend>self_drive_tasks_gazebo</exec_depend>
   <exec_depend>sequoia_lane_detection</exec_depend>
 </package>

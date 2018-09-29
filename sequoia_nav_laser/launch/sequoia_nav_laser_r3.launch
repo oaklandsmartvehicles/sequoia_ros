@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-   
-  <include file="$(find sequoia_nav_laser)/launch/sequoia_nav_sim_q3.launch" />
+
+  <include file="$(find igvc_self_drive_gazebo)/launch/q3_gazebo.launch" />
 
   <node pkg="move_base" type="move_base" name="move_base" output="screen" >
     <rosparam file="$(find sequoia_nav_laser)/yaml/move_base_params.yaml" />
@@ -18,9 +18,9 @@
 <node ns="camera_sim" pkg="sequoia_lane_detection" type="lane_detection_node" name="lane_detection_node" output="screen" >
     <remap from="line_obstacles" to="/move_base/TebLocalPlannerROS/obstacles" />
   </node>
- 
+
  <node pkg="lidar_stop_trigger" type="lidar_stop_trigger" name="lidar_stop_trigger" output="screen">
-  <remap from="scan" to="/vehicle/urg_node/scan" />  
+  <remap from="scan" to="/vehicle/urg_node/scan" />
   </node>
 
 
@@ -38,7 +38,7 @@
   <node pkg="ekf_example" type="ekf_example" name="ekf_example"/>
 
   <rosparam file="$(find sequoia_nav_laser)/yaml/TrueHeading.yaml" />
-  <param name="TrueHeading" value="0.0" />	
+  <param name="TrueHeading" value="0.0" />
 
 
   <node ns="vehicle" pkg="sequoia_twist_controller" type="sequoia_twist_controller" name="twist_control" output="screen" />

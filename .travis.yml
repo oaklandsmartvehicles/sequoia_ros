@@ -1,17 +1,14 @@
 sudo: required
 dist: trusty
 language: generic
-compiler:
-  - gcc
-
 env:
+  global:
+    - ROS_PARALLEL_TEST_JOBS=-j1
   matrix:
-    - ROS_DISTRO="kinetic" ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-matrix:
-  allow_failures:
-    - env: ROS_DISTRO="kinetic"   ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-
+    - ROS_DISTRO="kinetic" ROS_REPO=ros
+    - ROS_DISTRO="melodic" ROS_REPO=ros
 install:
-  - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
+  - git clone --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci
 script:
-  - source .ci_config/travis.sh
+  - git clone --depth 1 https://github.com/robustify/igvc_self_drive_sim
+  - .industrial_ci/ci.sh
